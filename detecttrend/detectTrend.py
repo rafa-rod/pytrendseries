@@ -13,9 +13,6 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 plt.style.use('fivethirtyeight')
 
-#import seaborn as sns
-#sns.set_style("white")
-
 pd.set_option('display.float_format', lambda x: '%.5f' % x)
 pd.set_option('display.max_rows',100)
 pd.set_option('display.max_columns',10)
@@ -24,8 +21,9 @@ pd.set_option('display.width',1000)
 import warnings
 warnings.filterwarnings('ignore')
 
-def _remove_overlap_data(getTrend3):
+def _remove_overlap_data(getTrend):
     ''' Remove overlap data'''
+    getTrend3 = getTrend.groupby('indice_to', as_index= False).nth([0]) 
     retirar_all=[]
     for x in range(len(getTrend3['to'])-1):
         from_=getTrend3['from'].tolist()[x+1:]
@@ -44,8 +42,8 @@ def _treat_parameters(prices, trend="uptrend" ,limit=5, window=1, quantil=None, 
     if quantil is not None:
         if (isinstance(quantil, float)==False) or (quantil>1) or (quantil<=0):
             raise Exception("Quantil parameter must be a float value between 0-1.")
-    if (isinstance(window, int)==False) or (window<1):
-            raise Exception("Window parameter must be a integer value greater than 1 (in days).")
+    if (isinstance(window, int)==False) or (window<limit) or (window<1):
+            raise Exception("Window parameter must be a integer and greater than limit value (in days).")
     if year is not None:
         if (isinstance(year, int)==False) or (year<1):
             raise Exception("Year parameter must be a integer value.")
@@ -78,7 +76,7 @@ def maxdradown(prices, getTrend4):
     maxmdd = mdd[mdd["maxdrawdown"]==mdd["maxdrawdown"].max()]
     return maxmdd
 
-def detectTrend(df_prices, trend="uptrend" ,limit=5, window=1, quantil=None, year=None, priority="drawdown"):
+def detectTrend(df_prices, trend="uptrend" ,limit=5, window=21, quantil=None, year=None):
     ''' Detect trend (up or down) in a timeseries dataframe with columns are date and price.
     It is possible to select window (i.e. 30 days, 126 days, and so on) of analysis or, by default, consider all dates.
     Using quantil (0-1) it is possible to choose trend with a specific percentil.
@@ -99,11 +97,10 @@ def detectTrend(df_prices, trend="uptrend" ,limit=5, window=1, quantil=None, yea
     getTrend, ID = pd.DataFrame(), 0
     for i in tqdm(range(0,prices.shape[0]-window)):
         priceMin = prices[i]
-        price1 = prices[i+window]
+        price1 = prices[i+1]
         if trend.lower()=="uptrend":
             if price1 > priceMin:
                 '''up trend'''
-                #print(i)
                 indice_from = indice[i]
                 since = date[i]
                 ID+=1
@@ -156,9 +153,8 @@ def detectTrend(df_prices, trend="uptrend" ,limit=5, window=1, quantil=None, yea
                 trend_df = pd.DataFrame.from_dict(trend_df,orient='index').T
                 getTrend = pd.concat([getTrend, trend_df]).drop_duplicates()
             
-    getTrend = getTrend.groupby('to', as_index= False).nth([0])       
+          
     getTrend2 = getTrend.copy()
-    
     getTrend2['time_on_trend'] = getTrend2['indice_to'] - getTrend2['indice_from']# + 1
     getTrend2=getTrend2[getTrend2['time_on_trend']>0]
     getTrend2['time_on_trend'] = pd.to_numeric(getTrend2['time_on_trend'])
@@ -173,16 +169,9 @@ def detectTrend(df_prices, trend="uptrend" ,limit=5, window=1, quantil=None, yea
     elif trend == "uptrend":
         getTrend4["buildup"]  = [abs(getTrend4["price0"].iloc[x]-getTrend4["price1"].iloc[x])/min(getTrend4["price0"].iloc[x],getTrend4["price1"].iloc[x]) for x in range(getTrend4.shape[0])]
     
-    if priority == "drawdown" and trend == "downtrend":
-        getTrend5 = _remove_overlap_data(getTrend4.sort_values("drawdown",ascending=False))
-    elif priority == "drawdown" and trend == "uptrend":
-        getTrend5 = _remove_overlap_data(getTrend4.sort_values("buildup",ascending=False))
-    elif priority == "time_on_trend":
-        getTrend5 = _remove_overlap_data(getTrend4.sort_values("time_on_trend",ascending=False))
-    elif priority == "first_trend_found":
-        getTrend5 = _remove_overlap_data(getTrend4)
+    getTrend5 = _remove_overlap_data(getTrend4)
         
-    print("Concluido em {} segundos".format(round((time.time()-start)/1,2)))
+    print("Finished in {} secs".format(round((time.time()-start),2)))
     return getTrend5.sort_values("from"), quantilValue
 
 def plot_trend(df, getTrend3, stock, trend, year):
@@ -196,23 +185,5 @@ def plot_trend(df, getTrend3, stock, trend, year):
             plt.axvspan(getTrend3['from'].iloc[i], getTrend3['to'].iloc[i],alpha=0.3,color='red')         
     #plt.savefig(os.path.join(path_downloads,'trend.png'), dpi=900)
     plt.show()
-    
-# path_downloads = os.path.join(os.path.expanduser('~'), 'downloads')
-
-# novos_dados = pd.read_csv(os.path.join(path_downloads,"PETR4.csv"))
-# novos_dados = novos_dados.sort_values("date")
-# novos_dados["date"] = pd.to_datetime(novos_dados["date"])
-# precos = novos_dados[['date',"close"]]
-
-# ano = 2005
-# trend = "downtrend"
-# stock = "close"
-# janela = 60
-# getTrend3, quantil = detectTrend(precos, trend=trend, priority="first_trend_found",
-#                                      window=janela, year=ano)
-
-
-# plot_trend(precos, getTrend3, stock, trend, ano)
-
-# print("{}".format(maxdradown(precos, getTrend3)))
+   
 
