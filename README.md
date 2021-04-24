@@ -1,5 +1,5 @@
 <p align="center">
-    <img width=60% src="https://github.com/rafa-rod/detectTrend/blob/main/media/trend.png">
+  <img width=60% src="https://github.com/rafa-rod/detectTrend/blob/main/media/maxdd_area.png">
 </p>
 
 <!-- buttons -->
@@ -56,6 +56,13 @@ The variable `trends_detected` is a dataframe that contais the initial and end d
 ```
 |     | from                | to                  |   price0 |   price1 |   indice_from |   indice_to |   time_span |   drawdown |\n|----:|:--------------------|:--------------------|---------:|---------:|--------------:|------------:|------------:|-----------:|\n|  10 | 2005-01-24 00:00:00 | 2005-02-11 00:00:00 |  20.2826 |  18.8064 |          1251 |        1262 |          11 |  0.0727829 |\n|  21 | 2005-02-24 00:00:00 | 2005-05-13 00:00:00 |  23.7561 |  15.8787 |          1271 |        1325 |          54 |  0.331593  |\n|  69 | 2005-06-17 00:00:00 | 2005-06-24 00:00:00 |  18.3077 |  16.623  |          1349 |        1354 |           5 |  0.0920179 |\n| 101 | 2005-09-30 00:00:00 | 2005-10-20 00:00:00 |  24.5624 |  20.7788 |          1423 |        1436 |          13 |  0.15404   |\n| 111 | 2005-11-03 00:00:00 | 2005-11-10 00:00:00 |  24.0637 |  22.4287 |          1445 |        1450 |           5 |  0.0679451 |
 ```
+ 
+ It is important to say that this drawdown is calculate in each window of trend. The follow graph explain some concepts:
+
+ insert figure here!!!
+<center>
+<img src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/efficient_frontier_white.png" style="width:60%;"/>
+</center>
 
 The output statistcs shows the basic statistics such as: minimum, maximum (must be equal to window variable) and other percentiles of all periods of trends.
 This is important if you want to cut all small trends detected. By default, the limit variable cut off all trends with 5 periods detected. 
@@ -75,13 +82,13 @@ All trends detected, with maximum window informed and the minimum informed by th
 
 ```python
 from detectTrend import plot_trend
-plot_trend(filtered_data, trends_detected, stock, trend, year)
+plot_trend(filtered_data, trends_detected, stock, trend)
 ```
 <center>
-<img src="https://github.com/rafa-rod/detectTrend/blob/main/media/plot_trend.png" style="width:60%;"/>
+<img src="https://github.com/rafa-rod/detectTrend/blob/main/media/plot_trend_whole_serie.png" style="width:60%;"/>
 </center>
 
-It is also possible to filter data by informing year variable.
+It is also possible to filter data by informing year variable. In this example, the series contains data after year 2005.
 
 ```python
 year = 2005
