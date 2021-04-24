@@ -1,5 +1,5 @@
 <p align="center">
-    <img width=60% src="https://github.com/rafa-rod/detectTrend/main/media/trend.png">
+    <img width=60% src="https://github.com/rafa-rod/detectTrend/tree/main/media/trend.png">
 </p>
 
 <!-- buttons -->
@@ -78,7 +78,7 @@ from detectTrend import plot_trend
 plot_trend(filtered_data, trends_detected, stock, trend, year)
 ```
 <center>
-<img src="https://github.com/rafa-rod/detectTrend/media/plot_trend.png" style="width:60%;"/>
+<img src="https://github.com/rafa-rod/detectTrend/tree/main/media/plot_trend.png" style="width:60%;"/>
 </center>
 
 It is also possible to filter data by informing year variable.
@@ -94,7 +94,7 @@ trends_detected, _ = detectTrend(filtered_data, trend=trend, quantile=0.85,
                                       window=janela, year=year)
 ```
 <center>
-<img src="https://github.com/rafa-rod/detectTrend/media/plot_trend.png" style="width:60%;"/>
+<img src="https://github.com/rafa-rod/detectTrend/tree/main/media/plot_trend.png" style="width:60%;"/>
 </center>
 
 The maximum drawdown it is calculate by call function `maxdradown` returning: peak and valley values, data in which they occurred and the maxdrawdown value.
@@ -117,7 +117,7 @@ plot_maxdrawdown(filtered_data, maxdd, stock, trend, year, style="shadow")
 ```
 
 <center>
-<img src="https://github.com/rafa-rod/detectTrend/media/maxdd_shadow.png" style="width:60%;"/>
+<img src="https://github.com/rafa-rod/detectTrend/tree/main/media/maxdd_shadow.png" style="width:60%;"/>
 </center>
 
 
@@ -127,7 +127,7 @@ plot_maxdrawdown(filtered_data, maxdd, stock, trend, year, style="area")
 ```
 
 <center>
-<img src="https://github.com/rafa-rod/detectTrend/media/maxdd_area.png" style="width:60%;"/>
+<img src="https://github.com/rafa-rod/detectTrend/tree/main/media/maxdd_area.png" style="width:60%;"/>
 </center>
 
 
@@ -143,6 +143,6 @@ plot_maxdrawdown(filtered_data, maxdd, stock, trend, year, style="plotly")
 ```
 
 <center>
-<img src="https://github.com/rafa-rod/detectTrend/media/maxdd_plotly.png" style="width:60%;"/>
+<img src="https://github.com/rafa-rod/detectTrend/tree/main/media/maxdd_plotly.png" style="width:60%;"/>
 </center>
 
