@@ -52,31 +52,66 @@ def _treat_parameters(prices, trend="uptrend" ,limit=5, window=1, quantil=None, 
     if prices.empty or ('date' not in prices.columns.tolist()) or (pd.api.types.is_datetime64_ns_dtype(prices.date.dtype)==False):
         raise Exception("Dataframe must contain two columns one of them called 'date'. Column date must be in datetime format.")
 
-def maxdradown(prices, getTrend4):
-    '''To calculate maxdrawdown in selected window of timeseries'''
-    mdd = pd.DataFrame(columns=["maxdrawdown", "peak_date_maxdrawdown", "valley_date_maxdrawdown","peak_price","valley_price"])
-    getTrend5 = getTrend4.copy()
-    maxdrawdown_lst, peak_date_maxdrawdown_lst, valley_date_maxdrawdown_lst, peak_price_lst, valley_price_lst = [], [], [], [], []
-    for x in range(getTrend5.shape[0]):
-        from_ = getTrend5["from"].iloc[x]
-        to_   = getTrend5["to"].iloc[x]
-        interval  = prices[(prices.date>=from_) & (prices.date<=to_)]
-        peak  = interval.max().values
-        valley = interval.min().values
-        maxdrawdown_lst.append( abs(peak[1]-valley[1])/peak[1] )
-        peak_date_maxdrawdown_lst.append( peak[0] )
-        valley_date_maxdrawdown_lst.append( valley[0] )
-        peak_price_lst.append( peak[1] )
-        valley_price_lst.append( valley[1] )
-    mdd["maxdrawdown"] = maxdrawdown_lst
-    mdd["peak_date_maxdrawdown"] = peak_date_maxdrawdown_lst
-    mdd["valley_date_maxdrawdown"] = valley_date_maxdrawdown_lst
-    mdd["peak_price"] = peak_price_lst
-    mdd["valley_price"] = valley_price_lst
+def _calculate_maxdd(time_series):
+    maxdrawdown_array = np.empty([1, 5], dtype=object)
+    
+    def get_peak(time_series):
+        peak  = np.max(time_series[:,1])       
+        peak_date_maxdrawdown = time_series[np.where(time_series[:,1]==peak)][0,0]
+        interval_valley = time_series[np.where(time_series[:,0]>peak_date_maxdrawdown)]
+        return peak, peak_date_maxdrawdown, interval_valley
+    
+    def get_valley(peak, peak_date_maxdrawdown, interval_valley):
+        valley = np.min(interval_valley[:,1]) 
+        valley_date_maxdrawdown = interval_valley[(np.where(interval_valley[:,1]==valley))][0,0]
+        maxdrawdown = np.abs(peak-valley)/peak
+        maxdrawdown_array[0,0] = peak
+        maxdrawdown_array[0,1] = valley
+        maxdrawdown_array[0,2] = peak_date_maxdrawdown
+        maxdrawdown_array[0,3] = valley_date_maxdrawdown
+        maxdrawdown_array[0,4] = maxdrawdown
+        return maxdrawdown_array
+    
+    peak, peak_date_maxdrawdown, interval_valley = get_peak(time_series)
+    if interval_valley.size != 0:
+        maxdrawdown_array = get_valley(peak, peak_date_maxdrawdown, interval_valley)
+        return maxdrawdown_array
+    else: #in case of end of the serie contains the maximum value
+        while interval_valley.size == 0:
+            time_series = time_series[:-1]
+            peak, peak_date_maxdrawdown, interval_valley = get_peak(time_series)
+            if interval_valley.size != 0: break
+        maxdrawdown_array = get_valley(peak, peak_date_maxdrawdown, interval_valley)
+        return maxdrawdown_array
+
+def _to_frame_maxdd(array):
+    mdd = pd.DataFrame(array)
+    mdd.columns = ['peak_price', 'valley_price', 'peak_date_maxdrawdown', 
+                   'valley_date_maxdrawdown', 'maxdrawdown']
+    mdd = mdd.dropna().drop_duplicates()
+    mdd['time_span'] = mdd['valley_date_maxdrawdown'] - mdd['peak_date_maxdrawdown']
     maxmdd = mdd[mdd["maxdrawdown"]==mdd["maxdrawdown"].max()]
     return maxmdd
 
-def detectTrend(df_prices, trend="uptrend" ,limit=5, window=21, quantil=None, year=None):
+def maxdradown(prices, getTrend4, year=None):
+    '''To calculate maxdrawdown in selected window of timeseries'''
+    start=time.time()
+    getTrend4_array = getTrend4.values
+    if year: prices = prices[prices['date'].dt.year>=year]
+    prices_array = prices.sort_values('date').values
+    maxdrawdown_all = np.empty([1, 5], dtype=object)
+    for x in range(getTrend4_array.shape[0]):
+        from_ = getTrend4_array[x,1]
+        to_   = getTrend4_array[x,2]
+        interval  = prices_array[(np.where(prices_array[:,0]>=from_)) and (np.where(prices_array[:,0]<=to_))]
+        maxdrawdown_array_interval = _calculate_maxdd(interval) 
+        maxdrawdown_all        = np.vstack([maxdrawdown_all, maxdrawdown_array_interval])
+
+    maxmdd = _to_frame_maxdd(maxdrawdown_all)    
+    print("MaxDrawDown finished in {} secs".format(round((time.time()-start),2)))
+    return maxmdd
+
+def detectTrend(df_prices, trend="downrend" ,limit=5, window=21, quantil=None, year=None):
     ''' Detect trend (up or down) in a timeseries dataframe with columns are date and price.
     It is possible to select window (i.e. 30 days, 126 days, and so on) of analysis or, by default, consider all dates.
     Using quantil (0-1) it is possible to choose trend with a specific percentil.
@@ -90,11 +125,12 @@ def detectTrend(df_prices, trend="uptrend" ,limit=5, window=21, quantil=None, ye
     _treat_parameters(df_prices, trend, limit, window, quantil, year)
 
     start=time.time()
+    df_prices = df_prices.sort_values("date")
     if year: df = df_prices[df_prices['date'].dt.year>=year]
     else: df=df_prices.copy()
     df_array = df.reset_index().values
     prices, date, indice = df_array[:,2], df_array[:,1], df_array[:,0]
-    getTrend, ID = pd.DataFrame(), 0
+    getTrend, ID = np.empty([1, 7], dtype=object), 0
     for i in tqdm(range(0,prices.shape[0]-window)):
         priceMin = prices[i]
         price1 = prices[i+1]
@@ -104,9 +140,8 @@ def detectTrend(df_prices, trend="uptrend" ,limit=5, window=21, quantil=None, ye
                 indice_from = indice[i]
                 since = date[i]
                 ID+=1
-                trend_df = {'ID':ID,'from':since,'to':np.nan,'price0':priceMin,'price1':np.nan,
-                         'indice_from':indice_from, 'indice_to':np.nan}
-                trend_df = pd.DataFrame.from_dict(trend_df,orient='index').T
+                trend_df = np.empty([1, 7], dtype=object)
+
                 found = df_array[i:(i+window+1)]
                 location_min = found[np.where(found[:,2]<priceMin)]
                 if list(location_min): 
@@ -121,19 +156,24 @@ def detectTrend(df_prices, trend="uptrend" ,limit=5, window=21, quantil=None, ye
                 if location_max[0] == i: continue
                 to, indice_to = location_max[1], location_max[0]
         
-                trend_df = {'ID':ID,'from':since,'to':to,'price0':priceMin,'price1':priceMax,
-                         'indice_from':indice_from, 'indice_to':indice_to}
-                trend_df = pd.DataFrame.from_dict(trend_df,orient='index').T
-                getTrend = pd.concat([getTrend, trend_df]).drop_duplicates()
+                trend_df[0,0] = ID #ID
+                trend_df[0,1] = since #from
+                trend_df[0,2] = to #to
+                trend_df[0,3] = priceMin #price0
+                trend_df[0,4] = priceMax #price1
+                trend_df[0,5] = indice_from #indice_from
+                trend_df[0,6] = indice_to #indice_to
+                
+                getTrend = np.vstack([getTrend, trend_df])
+                
         elif trend.lower()=="downtrend":
             if price1 < priceMin:
                 '''down trend'''
                 indice_from = indice[i]
                 since = date[i]
                 ID+=1
-                trend_df = {'ID':ID,'from':since,'to':np.nan,'price0':priceMin,'price1':np.nan,
-                         'indice_from':indice_from, 'indice_to':np.nan}
-                trend_df = pd.DataFrame.from_dict(trend_df,orient='index').T
+                trend_df = np.empty([1, 7], dtype=object)
+                
                 found = df_array[i:(i+window+1)]
                 location_min = found[np.where(found[:,2]>priceMin)]
                 if list(location_min): 
@@ -148,30 +188,37 @@ def detectTrend(df_prices, trend="uptrend" ,limit=5, window=21, quantil=None, ye
                 if location_max[0] == i: continue
                 to, indice_to = location_max[1], location_max[0]
         
-                trend_df = {'ID':ID,'from':since,'to':to,'price0':priceMin,'price1':priceMax,
-                         'indice_from':indice_from, 'indice_to':indice_to}
-                trend_df = pd.DataFrame.from_dict(trend_df,orient='index').T
-                getTrend = pd.concat([getTrend, trend_df]).drop_duplicates()
+                trend_df[0,0] = ID #ID
+                trend_df[0,1] = since #from
+                trend_df[0,2] = to #to
+                trend_df[0,3] = priceMin #price0
+                trend_df[0,4] = priceMax #price1
+                trend_df[0,5] = indice_from #indice_from
+                trend_df[0,6] = indice_to #indice_to
+                
+                getTrend = np.vstack([getTrend, trend_df])
             
           
-    getTrend2 = getTrend.copy()
-    getTrend2['time_on_trend'] = getTrend2['indice_to'] - getTrend2['indice_from']# + 1
-    getTrend2=getTrend2[getTrend2['time_on_trend']>0]
-    getTrend2['time_on_trend'] = pd.to_numeric(getTrend2['time_on_trend'])
-    quantilValue = getTrend2['time_on_trend'].describe([0.25,0.5,0.75,0.8,0.85,0.9,0.925,0.95,0.975,0.99])  
+    getTrend2 = pd.DataFrame(getTrend)
+    getTrend2.columns = ['ID','from','to','price0','price1','indice_from','indice_to']
+    
+    getTrend2['time_span'] = getTrend2['indice_to'] - getTrend2['indice_from']# + 1
+    getTrend2=getTrend2[getTrend2['time_span']>0]
+    getTrend2['time_span'] = pd.to_numeric(getTrend2['time_span'])
+    quantilValue = getTrend2['time_span'].describe([0.25,0.5,0.75,0.8,0.85,0.9,0.925,0.95,0.975,0.99])  
     if quantil:
-        limit = getTrend2['time_on_trend'].quantile(quantil)
+        limit = getTrend2['time_span'].quantile(quantil)
 
-    getTrend4 = getTrend2[getTrend2['time_on_trend']>=limit]
+    getTrend4 = getTrend2[getTrend2['time_span']>=limit]
     
     if trend == "downtrend":
         getTrend4["drawdown"] = [abs(getTrend4["price0"].iloc[x]-getTrend4["price1"].iloc[x])/max(getTrend4["price0"].iloc[x],getTrend4["price1"].iloc[x]) for x in range(getTrend4.shape[0])]
+        getTrend5 = _remove_overlap_data(getTrend4)
     elif trend == "uptrend":
-        getTrend4["buildup"]  = [abs(getTrend4["price0"].iloc[x]-getTrend4["price1"].iloc[x])/min(getTrend4["price0"].iloc[x],getTrend4["price1"].iloc[x]) for x in range(getTrend4.shape[0])]
-    
-    getTrend5 = _remove_overlap_data(getTrend4)
+        getTrend4["buildup"]  = [abs(getTrend4["price0"].iloc[x]-getTrend4["price1"].iloc[x])/min(getTrend4["price0"].iloc[x],getTrend4["price1"].iloc[x]) for x in range(getTrend4.shape[0])]  
+        getTrend5 = getTrend4.copy()
         
-    print("Finished in {} secs".format(round((time.time()-start),2)))
+    print("Trends detected in {} secs".format(round((time.time()-start),2)))
     return getTrend5.sort_values("from"), quantilValue
 
 def plot_trend(df, getTrend3, stock, trend, year):
@@ -182,8 +229,110 @@ def plot_trend(df, getTrend3, stock, trend, year):
         if trend == "uptrend":
             plt.axvspan(getTrend3['from'].iloc[i], getTrend3['to'].iloc[i],alpha=0.3,color='green')
         elif trend == "downtrend":
-            plt.axvspan(getTrend3['from'].iloc[i], getTrend3['to'].iloc[i],alpha=0.3,color='red')         
-    #plt.savefig(os.path.join(path_downloads,'trend.png'), dpi=900)
+            plt.axvspan(getTrend3['from'].iloc[i], getTrend3['to'].iloc[i],alpha=0.3,color='red')
     plt.show()
-   
-
+    
+def plot_maxdrawdown(df, mdd, stock, trend, year, style="shadow"):
+    df = df[df['date'].dt.year>=year]
+    plt.figure(figsize=(14,5))
+    if style=='shadow':
+        if trend == "uptrend":
+            plt.axvspan(mdd['valley_date_maxdrawdown'], mdd['peak_date_maxdrawdown'],alpha=0.3,color='green')
+        elif trend == "downtrend":
+            plt.axvspan(mdd['peak_date_maxdrawdown'], mdd['valley_date_maxdrawdown'], alpha=0.3,color='red')
+        plt.show()
+    elif style=="area":
+        if trend == "uptrend":
+            color = "green"
+            a = mdd['peak_date_maxdrawdown'].values[0]
+            b = mdd['valley_date_maxdrawdown'].values[0]
+            plt.fill_between(df.date, 0, df[stock], where = (df.date >= a),
+                             alpha=0.3, facecolor=color)
+            plt.fill_between(df.date, 0, df[stock],
+                             where = (df.date <= b), 
+                             alpha=0.3, facecolor=color)
+            plt.plot(df.date,df[stock],alpha=0.6,lw=0.3,color=color)
+            plt.scatter(a, mdd["peak_price"].values[0], marker = 'o', color=color)
+            plt.scatter(b, mdd["valley_price"].values[0], marker = 'o', color=color)
+            plt.show()  
+        elif trend == "downtrend":
+            color = "red"
+            a = mdd['peak_date_maxdrawdown'].values[0]
+            b = mdd['valley_date_maxdrawdown'].values[0]
+            plt.fill_between(df.date, 0, df[stock], where = (df.date >= a),
+                             alpha=0.3, facecolor=color)
+            plt.fill_between(df.date, 0, df[stock],
+                             where = (df.date <= b), 
+                             alpha=0.3, facecolor=color)
+            plt.plot(df.date,df[stock],alpha=0.6,lw=0.3,color=color)
+            plt.scatter(a, mdd["peak_price"].values[0], marker = 'o', color=color)
+            plt.scatter(b, mdd["valley_price"].values[0], marker = 'o', color=color)
+            plt.show()
+    elif style=="plotly":
+        import plotly.graph_objects as go
+        import plotly.io as pio
+        pio.renderers.default='browser'
+        if trend == "uptrend":
+            color="green"
+            fig = go.Figure()
+            a = mdd['peak_date_maxdrawdown'].values[0]
+            b = mdd['valley_date_maxdrawdown'].values[0]
+            x = df.date
+            y = df[stock]
+            cut1 = df[(df.date>=a) & (df.date<=b)]
+            x_cut1 = cut1.date
+            y_cut1 = cut1[stock]
+            fig.add_trace(go.Scatter(x=x, y=y,
+                fill=None,
+                mode='lines',
+                line_color=color,
+                hovertemplate =
+                '<i>Price</i>: R$%{y:.2f}'+
+                '<br><b>Date</b>: %{x}<br>'+
+                '<b>%{text}</b><extra></extra>',
+                text = [stock]*df.shape[0]
+                ))
+            fig.add_trace(go.Scatter(x=x_cut1, y=y_cut1,
+                fill='tonexty',
+                mode='lines',
+                line_color=color,stackgroup='one',
+                hovertemplate =
+                '<i>Price</i>: $%{y:.2f}'+
+                '<br><b>Date</b>: %{x}<br>'+
+                '<b>%{text}</b><extra></extra>',
+                text = [stock]*df.shape[0]
+                ))
+            fig.update_layout(showlegend=False)
+            fig.show()            
+        elif trend == "downtrend":
+            color="red"
+            fig = go.Figure()
+            a = mdd['peak_date_maxdrawdown'].values[0]
+            b = mdd['valley_date_maxdrawdown'].values[0]
+            x = df.date
+            y = df[stock]
+            cut1 = df[(df.date>=a) & (df.date<=b)]
+            x_cut1 = cut1.date
+            y_cut1 = cut1[stock]
+            fig.add_trace(go.Scatter(x=x, y=y,
+                fill=None,
+                mode='lines',
+                line_color=color,
+                hovertemplate =
+                '<i>Price</i>: R$%{y:.2f}'+
+                '<br><b>Date</b>: %{x}<br>'+
+                '<b>%{text}</b><extra></extra>',
+                text = [stock]*df.shape[0]
+                ))
+            fig.add_trace(go.Scatter(x=x_cut1, y=y_cut1,
+                fill='tonexty',
+                mode='lines',
+                line_color=color,stackgroup='one',
+                hovertemplate =
+                '<i>Price</i>: $%{y:.2f}'+
+                '<br><b>Date</b>: %{x}<br>'+
+                '<b>%{text}</b><extra></extra>',
+                text = [stock]*df.shape[0]
+                ))
+            fig.update_layout(showlegend=False)
+            fig.show()
