@@ -14,7 +14,7 @@
 
 <!-- content -->
 
-DetectTrend is a Python library for detection of trends in time series like: stock prices, monthly sales, daily temperature of a city and so on.
+**DetectTrend** is a Python library for detection of trends in time series like: stock prices, monthly sales, daily temperature of a city and so on.
 The input data must be a pandas.DataFrame format with two columns only: date (datetime format) and observed data (float or int format). The first column must be named as **date** and the second one could be named as you desire.
 
 ```python
@@ -54,7 +54,13 @@ trends_detected, statistcs = detectTrend(filtered_data, trend=trend, window=wind
 The variable `trends_detected` is a dataframe that contais the initial and end date of each trend, the prices of each date, time span of each trend and the drawdown of each trend. Let's see rhe first five rows of this dataframe:
 
 ```
-|     | from                | to                  |   price0 |   price1 |   indice_from |   indice_to |   time_span |   drawdown |\n|----:|:--------------------|:--------------------|---------:|---------:|--------------:|------------:|------------:|-----------:|\n|  10 | 2005-01-24 00:00:00 | 2005-02-11 00:00:00 |  20.2826 |  18.8064 |          1251 |        1262 |          11 |  0.0727829 |\n|  21 | 2005-02-24 00:00:00 | 2005-05-13 00:00:00 |  23.7561 |  15.8787 |          1271 |        1325 |          54 |  0.331593  |\n|  69 | 2005-06-17 00:00:00 | 2005-06-24 00:00:00 |  18.3077 |  16.623  |          1349 |        1354 |           5 |  0.0920179 |\n| 101 | 2005-09-30 00:00:00 | 2005-10-20 00:00:00 |  24.5624 |  20.7788 |          1423 |        1436 |          13 |  0.15404   |\n| 111 | 2005-11-03 00:00:00 | 2005-11-10 00:00:00 |  24.0637 |  22.4287 |          1445 |        1450 |           5 |  0.0679451 |
+    |   ID | from                | to                  |   price0 |   price1 |   indice_from |   indice_to |   time_span |   drawdown |
+|---:|-----:|:--------------------|:--------------------|---------:|---------:|--------------:|------------:|------------:|-----------:|
+|  1 |    1 | 2000-01-03 00:00:00 | 2000-01-31 00:00:00 |  5.90057 |  5.12252 |             0 |          19 |          19 |  0.131859  |
+| 25 |   25 | 2000-03-09 00:00:00 | 2000-04-24 00:00:00 |  6.42701 |  5.02208 |            45 |          76 |          31 |  0.218597  |
+| 46 |   46 | 2000-05-02 00:00:00 | 2000-05-11 00:00:00 |  5.53684 |  5.29352 |            81 |          88 |           7 |  0.0439456 |
+| 50 |   50 | 2000-05-16 00:00:00 | 2000-05-24 00:00:00 |  5.59962 |  5.24807 |            91 |          97 |           6 |  0.0627803 |
+| 57 |   57 | 2000-06-08 00:00:00 | 2000-06-15 00:00:00 |  6.30359 |  6.1646  |           108 |         113 |           5 |  0.0220487 |
 ```
 
 The output statistcs shows the basic statistics such as: minimum, maximum (must be equal to window variable) and other percentiles of all periods of trends.
@@ -64,7 +70,23 @@ The statistcs exhibit all trend with no cut off at all.
 Let's see the statistcs:
 
 ```
-|       |   time_span |\n|:------|------------:|\n| count |   1892      |\n| mean  |     13.3473 |\n| std   |     26.8657 |\n| min   |      1      |\n| 25%   |      1      |\n| 50%   |      2      |\n| 75%   |      9      |\n| 80%   |     13      |\n| 85%   |     21      |\n| 90%   |     44.9    |\n| 92.5% |     63      |\n| 95%   |     90.9    |\n| 97.5% |    107      |\n| 99%   |    118.09   |\n| max   |    126      |
+|       |   time_span |
+|:------|------------:|
+| count |   2444      |
+| mean  |     12.5569 |
+| std   |     26.0989 |
+| min   |      1      |
+| 25%   |      1      |
+| 50%   |      2      |
+| 75%   |      8      |
+| 80%   |     12      |
+| 85%   |     18.55   |
+| 90%   |     33      |
+| 92.5% |     57.775  |
+| 95%   |     88      |
+| 97.5% |    110      |
+| 99%   |    122      |
+| max   |    126      |
 ```
 
 As we just saw, the median (50% percentile) shows that 50% of trends is just 2 periods (2 days in this case), therefore the default limit of 5 it is a good cut number.
@@ -105,7 +127,9 @@ maxdd = maxdradown(filtered_data, trends_detected, year)
 ```
 
 ```
-| x |   peak_price |   valley_price | peak_date_maxdrawdown   | valley_date_maxdrawdown   |   maxdrawdown | time_span          |\n|---:|-------------:|---------------:|:------------------------|:--------------------------|--------------:|:-------------------|\n| 48 |        72.09 |            8.6 | 2008-05-16 00:00:00     | 2016-02-02 00:00:00       |      0.880705 | 2818 days 00:00:00 |
+|   peak_price |   valley_price | peak_date_maxdrawdown   | valley_date_maxdrawdown   |   maxdrawdown | time_span          |
+|-------------:|---------------:|:------------------------|:--------------------------|--------------:|:-------------------|
+|        52.51 |            4.2 | 2008-05-21 00:00:00     | 2016-01-26 00:00:00       |      0.920015 | 2806 days 00:00:00 |
 ```
 
 To exhibit the maximium drawdown of the time series just call `plot_maxdrawdown` function and select the style of the plot: shadow, area or plotly.
