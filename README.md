@@ -54,14 +54,21 @@ trends_detected, statistcs = detectTrend(filtered_data, trend=trend, window=wind
 The variable `trends_detected` is a dataframe that contais the initial and end date of each trend, the prices of each date, time span of each trend and the drawdown of each trend. Let's see rhe first five rows of this dataframe:
 
 ```
-    |   ID | from                | to                  |   price0 |   price1 |   indice_from |   indice_to |   time_span |   drawdown |
-|---:|-----:|:--------------------|:--------------------|---------:|---------:|--------------:|------------:|------------:|-----------:|
-|  1 |    1 | 2000-01-03 00:00:00 | 2000-01-31 00:00:00 |  5.90057 |  5.12252 |             0 |          19 |          19 |  0.131859  |
-| 25 |   25 | 2000-03-09 00:00:00 | 2000-04-24 00:00:00 |  6.42701 |  5.02208 |            45 |          76 |          31 |  0.218597  |
-| 46 |   46 | 2000-05-02 00:00:00 | 2000-05-11 00:00:00 |  5.53684 |  5.29352 |            81 |          88 |           7 |  0.0439456 |
-| 50 |   50 | 2000-05-16 00:00:00 | 2000-05-24 00:00:00 |  5.59962 |  5.24807 |            91 |          97 |           6 |  0.0627803 |
-| 57 |   57 | 2000-06-08 00:00:00 | 2000-06-15 00:00:00 |  6.30359 |  6.1646  |           108 |         113 |           5 |  0.0220487 |
+| from                | to                  |   price0 |   price1 |   indice_from |   indice_to |   time_span |   drawdown |
+|:--------------------|:--------------------|---------:|---------:|--------------:|------------:|------------:|-----------:|
+| 2000-01-03 00:00:00 | 2000-01-31 00:00:00 |  5.90057 |  5.12252 |             0 |          19 |          19 |  0.131859  |
+| 2000-03-09 00:00:00 | 2000-04-24 00:00:00 |  6.42701 |  5.02208 |            45 |          76 |          31 |  0.218597  |
+| 2000-05-02 00:00:00 | 2000-05-11 00:00:00 |  5.53684 |  5.29352 |            81 |          88 |           7 |  0.0439456 |
+| 2000-05-16 00:00:00 | 2000-05-24 00:00:00 |  5.59962 |  5.24807 |            91 |          97 |           6 |  0.0627803 |
+| 2000-06-08 00:00:00 | 2000-06-15 00:00:00 |  6.30359 |  6.1646  |           108 |         113 |           5 |  0.0220487 |
 ```
+ 
+ It is important to say that this drawdown is calculate in each window of trend. The follow graph explain some concepts:
+
+ insert figure here!!!
+<center>
+<img src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/efficient_frontier_white.png" style="width:60%;"/>
+</center>
 
 The output statistcs shows the basic statistics such as: minimum, maximum (must be equal to window variable) and other percentiles of all periods of trends.
 This is important if you want to cut all small trends detected. By default, the limit variable cut off all trends with 5 periods detected. 
