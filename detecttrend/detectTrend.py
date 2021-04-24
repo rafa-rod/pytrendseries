@@ -35,13 +35,13 @@ def _remove_overlap_data(getTrend):
     return getTrend4
 
 
-def _treat_parameters(prices, trend="uptrend" ,limit=5, window=1, quantil=None, year=None):
+def _treat_parameters(prices, trend="uptrend" ,limit=5, window=1, quantile=None, year=None):
     '''Checking all parameters'''
     if isinstance(limit, int)==False:
             raise Exception("Limit parameter must be a interger value.")
-    if quantil is not None:
-        if (isinstance(quantil, float)==False) or (quantil>1) or (quantil<=0):
-            raise Exception("Quantil parameter must be a float value between 0-1.")
+    if quantile is not None:
+        if (isinstance(quantile, float)==False) or (quantile>1) or (quantile<=0):
+            raise Exception("quantile parameter must be a float value between 0-1.")
     if (isinstance(window, int)==False) or (window<limit) or (window<1):
             raise Exception("Window parameter must be a integer and greater than limit value (in days).")
     if year is not None:
@@ -111,18 +111,18 @@ def maxdradown(prices, getTrend4, year=None):
     print("MaxDrawDown finished in {} secs".format(round((time.time()-start),2)))
     return maxmdd
 
-def detectTrend(df_prices, trend="downrend" ,limit=5, window=21, quantil=None, year=None):
+def detectTrend(df_prices, trend="downrend" ,limit=5, window=21, quantile=None, year=None):
     ''' Detect trend (up or down) in a timeseries dataframe with columns are date and price.
     It is possible to select window (i.e. 30 days, 126 days, and so on) of analysis or, by default, consider all dates.
-    Using quantil (0-1) it is possible to choose trend with a specific percentil.
-    Whether using limit value, instead of using quantil, you can manually choose trend in the timeseries.
+    Using quantile (0-1) it is possible to choose trend with a specific percentil.
+    Whether using limit value, instead of using quantile, you can manually choose trend in the timeseries.
     Exemple: whether two consecutive prices is rising you might consider this pattern a trend, but if not you can adjust manually using 
-    limit parameter greater than 2 or using quantil parameter as 0.95'''
+    limit parameter greater than 2 or using quantile parameter as 0.95'''
     
-    if quantil is not None and limit is not None:
-        raise ValueError("Choose just one parameter (quantil or limit).")
+    if quantile is not None and limit is not None:
+        raise ValueError("Choose just one parameter (quantile or limit).")
 
-    _treat_parameters(df_prices, trend, limit, window, quantil, year)
+    _treat_parameters(df_prices, trend, limit, window, quantile, year)
 
     start=time.time()
     df_prices = df_prices.sort_values("date")
@@ -205,9 +205,9 @@ def detectTrend(df_prices, trend="downrend" ,limit=5, window=21, quantil=None, y
     getTrend2['time_span'] = getTrend2['indice_to'] - getTrend2['indice_from']# + 1
     getTrend2=getTrend2[getTrend2['time_span']>0]
     getTrend2['time_span'] = pd.to_numeric(getTrend2['time_span'])
-    quantilValue = getTrend2['time_span'].describe([0.25,0.5,0.75,0.8,0.85,0.9,0.925,0.95,0.975,0.99])  
-    if quantil:
-        limit = getTrend2['time_span'].quantile(quantil)
+    quantileValue = getTrend2['time_span'].describe([0.25,0.5,0.75,0.8,0.85,0.9,0.925,0.95,0.975,0.99])  
+    if quantile:
+        limit = getTrend2['time_span'].quantile(quantile)
 
     getTrend4 = getTrend2[getTrend2['time_span']>=limit]
     
@@ -219,7 +219,7 @@ def detectTrend(df_prices, trend="downrend" ,limit=5, window=21, quantil=None, y
         getTrend5 = getTrend4.copy()
         
     print("Trends detected in {} secs".format(round((time.time()-start),2)))
-    return getTrend5.sort_values("from"), quantilValue
+    return getTrend5.sort_values("from"), quantileValue.to_frame()
 
 def plot_trend(df, getTrend3, stock, trend, year):
     df = df[df['date'].dt.year>=year]
@@ -236,10 +236,11 @@ def plot_maxdrawdown(df, mdd, stock, trend, year, style="shadow"):
     df = df[df['date'].dt.year>=year]
     plt.figure(figsize=(14,5))
     if style=='shadow':
+        plt.plot(df.date,df[stock],alpha=0.6)
         if trend == "uptrend":
-            plt.axvspan(mdd['valley_date_maxdrawdown'], mdd['peak_date_maxdrawdown'],alpha=0.3,color='green')
+            plt.axvspan(mdd['valley_date_maxdrawdown'].values[0], mdd['peak_date_maxdrawdown'].values[0],alpha=0.3,color='green')
         elif trend == "downtrend":
-            plt.axvspan(mdd['peak_date_maxdrawdown'], mdd['valley_date_maxdrawdown'], alpha=0.3,color='red')
+            plt.axvspan(mdd['peak_date_maxdrawdown'].values[0], mdd['valley_date_maxdrawdown'].values[0], alpha=0.3,color='red')
         plt.show()
     elif style=="area":
         if trend == "uptrend":
