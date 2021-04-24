@@ -221,8 +221,8 @@ def detectTrend(df_prices, trend="downrend" ,limit=5, window=21, quantile=None, 
     print("Trends detected in {} secs".format(round((time.time()-start),2)))
     return getTrend5.sort_values("from"), quantileValue.to_frame()
 
-def plot_trend(df, getTrend3, stock, trend, year):
-    df = df[df['date'].dt.year>=year]
+def plot_trend(df, getTrend3, stock, trend="downtrend", year=None):
+    if year: df = df[df['date'].dt.year>=year]
     plt.figure(figsize=(14,5))
     plt.plot(df.date,df[stock],alpha=0.6)
     for i in range(len(getTrend3)):
@@ -232,8 +232,8 @@ def plot_trend(df, getTrend3, stock, trend, year):
             plt.axvspan(getTrend3['from'].iloc[i], getTrend3['to'].iloc[i],alpha=0.3,color='red')
     plt.show()
     
-def plot_maxdrawdown(df, mdd, stock, trend, year, style="shadow"):
-    df = df[df['date'].dt.year>=year]
+def plot_maxdrawdown(df, mdd, stock, trend="downtrend", year=None, style="shadow"):
+    if year: df = df[df['date'].dt.year>=year]
     plt.figure(figsize=(14,5))
     if style=='shadow':
         plt.plot(df.date,df[stock],alpha=0.6)
