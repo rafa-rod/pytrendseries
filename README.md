@@ -62,13 +62,6 @@ The variable `trends_detected` is a dataframe that contais the initial and end d
 | 2000-05-16 00:00:00 | 2000-05-24 00:00:00 |  5.59962 |  5.24807 |            91 |          97 |           6 |  0.0627803 |
 | 2000-06-08 00:00:00 | 2000-06-15 00:00:00 |  6.30359 |  6.1646  |           108 |         113 |           5 |  0.0220487 |
 ```
- 
- It is important to say that this drawdown is calculate in each window of trend. The follow graph explain some concepts:
-
- insert figure here!!!
-<center>
-<img src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/efficient_frontier_white.png" style="width:60%;"/>
-</center>
 
 The output statistcs shows the basic statistics such as: minimum, maximum (must be equal to window variable) and other percentiles of all periods of trends.
 This is important if you want to cut all small trends detected. By default, the limit variable cut off all trends with 5 periods detected. 
