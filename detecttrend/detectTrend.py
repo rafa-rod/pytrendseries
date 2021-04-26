@@ -21,18 +21,32 @@ pd.set_option('display.width',1000)
 import warnings
 warnings.filterwarnings('ignore')
 
+# def _remove_overlap_data(getTrend):
+#     ''' Remove overlap data'''
+#     getTrend3 = getTrend.groupby('indice_to', as_index= False).nth([0]) 
+#     retirar_all=[]
+#     for x in range(len(getTrend3['to'])-1):
+#         from_=getTrend3['from'].tolist()[x+1:]
+#         to_ = getTrend3['to'].iloc[x]
+#         retirar=[t for t in from_ if t < to_]
+#         if retirar: retirar_all.append(retirar)
+#     retirar_all = list(flatten(retirar_all))
+#     getTrend4 = getTrend3[~getTrend3['from'].isin(retirar_all)]
+#     return getTrend4
+
 def _remove_overlap_data(getTrend):
     ''' Remove overlap data'''
     getTrend3 = getTrend.groupby('indice_to', as_index= False).nth([0]) 
-    retirar_all=[]
-    for x in range(len(getTrend3['to'])-1):
+    x=0
+    while True:
         from_=getTrend3['from'].tolist()[x+1:]
         to_ = getTrend3['to'].iloc[x]
         retirar=[t for t in from_ if t < to_]
-        if retirar: retirar_all.append(retirar)
-    retirar_all = list(flatten(retirar_all))
-    getTrend4 = getTrend3[~getTrend3['from'].isin(retirar_all)]
-    return getTrend4
+        if retirar:
+            getTrend3 = getTrend3[~getTrend3['from'].isin(retirar)]
+        x+=1
+        if x >= len(getTrend3['to'])-1: break
+    return getTrend3
 
 
 def _treat_parameters(prices, trend="uptrend" ,limit=5, window=1, quantile=None, year=None):
@@ -215,8 +229,8 @@ def detectTrend(df_prices, trend="downrend" ,limit=5, window=21, quantile=None, 
         getTrend4["drawdown"] = [abs(getTrend4["price0"].iloc[x]-getTrend4["price1"].iloc[x])/max(getTrend4["price0"].iloc[x],getTrend4["price1"].iloc[x]) for x in range(getTrend4.shape[0])]
         getTrend5 = _remove_overlap_data(getTrend4)
     elif trend == "uptrend":
-        getTrend4["buildup"]  = [abs(getTrend4["price0"].iloc[x]-getTrend4["price1"].iloc[x])/min(getTrend4["price0"].iloc[x],getTrend4["price1"].iloc[x]) for x in range(getTrend4.shape[0])]  
-        getTrend5 = getTrend4.copy()
+        getTrend4["run_up"]  = [abs(getTrend4["price0"].iloc[x]-getTrend4["price1"].iloc[x])/min(getTrend4["price0"].iloc[x],getTrend4["price1"].iloc[x]) for x in range(getTrend4.shape[0])]  
+        getTrend5 = _remove_overlap_data(getTrend4)
         
     print("Trends detected in {} secs".format(round((time.time()-start),2)))
     return getTrend5.sort_values("from"), quantileValue.to_frame()
