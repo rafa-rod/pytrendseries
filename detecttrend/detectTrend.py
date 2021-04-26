@@ -93,13 +93,13 @@ def max_trend(price, stock, trend="downtrend", year=None):
         interval = price[(price.date >= valley_date) & (price.date <= peak_date)].values
         if interval.size==0:
             peak, valley, peak_date, valley_date, interval = _get_new_interval(interval, price, stock, trend)
-        mxtrend = (interval[-1,1]/interval[0,1])-1
+        mxtrend = abs(peak-valley)/abs(valley)
     elif trend.lower() == "downtrend":
         interval = price[(price.date >= peak_date) & (price.date <= valley_date)].values
         if interval.size==0:
             peak, valley, peak_date, valley_date, interval = _get_new_interval(interval, price, stock, trend)  
-        mxtrend = (interval[0,1]/interval[-1,1])-1
-
+        mxtrend = abs(peak-valley)/abs(peak)
+        
     maxtrend_array = np.empty([1, 6], dtype=object)
     maxtrend_array[0,0] =  peak
     maxtrend_array[0,1] =  valley
