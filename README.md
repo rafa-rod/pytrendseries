@@ -10,6 +10,9 @@
     <a href="https://opensource.org/licenses/MIT">
         <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg"
             alt="MIT license"></a> &nbsp;
+      <a href="https://codecov.io/gh/rafa-rod/detectTrend">
+        <img src="https://codecov.io/gh/rafa-rod/detectTrend/branch/main/graph/badge.svg?token=98EMCTZTOY"/>
+      </a>
 </p>
 
 <!-- content -->

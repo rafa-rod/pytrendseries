@@ -1,8 +1,7 @@
-
-from .detectTrend import *
+from .detectTrend.detectTrend import *
 
 __version__ = '0.1.0'
 
 __all__ = ['detectTrend',
-			'max_trend',
+			'maxdradown',
 			'plot_trend']

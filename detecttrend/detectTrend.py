@@ -20,7 +20,7 @@ pd.set_option('display.width',1000)
 import warnings
 warnings.filterwarnings('ignore')
 
-def _remove_overlap_data(getTrend):
+def _remove_overlap_data(getTrend): # pragma: no cover
     ''' Remove overlap data'''
     getTrend3 = getTrend.groupby('index_to', as_index= False).nth([0]) 
     if getTrend3.empty: getTrend3 = getTrend.copy()
@@ -36,32 +36,37 @@ def _remove_overlap_data(getTrend):
             if x >= len(getTrend3['to'])-1: break
     return getTrend3
 
-
 def _treat_parameters(prices, trend="downtrend" ,limit=5, window=1, quantile=None, year=None):
     '''Checking all parameters'''
     if isinstance(limit, int)==False:
-            raise Exception("Limit parameter must be a interger value.")
+            raise ValueError("Limit parameter must be a interger value.")
     if quantile is not None:
         if (isinstance(quantile, float)==False) or (quantile>1) or (quantile<=0):
-            raise Exception("quantile parameter must be a float value between 0-1.")
+            raise ValueError("Quantile parameter must be a float value between 0-1.")
     if (isinstance(window, int)==False) or (window<limit) or (window<1):
-            raise Exception("Window parameter must be a integer and greater than limit value (in days).")
+            raise ValueError("Window parameter must be a integer and greater than limit value (in days).")
     if year is not None:
         if (isinstance(year, int)==False) or (year<1):
-            raise Exception("Year parameter must be a integer value.")
-    if trend.lower() not in ["uptrend", "downtrend"]:
-        raise Exception("Choose only 'uptrend' or 'downtrend'.")
-    if prices.empty or ('date' not in prices.columns.tolist()) or (pd.api.types.is_datetime64_ns_dtype(prices.date.dtype)==False):
-        raise Exception("Dataframe must contain two columns one of them called 'date'. Column date must be in datetime format.")
+            raise ValueError("Year parameter must be a integer value.")
+    if isinstance(trend, str)==False or trend.lower() not in ["uptrend", "downtrend"]:
+        raise ValueError("Trend parameter must be string. Choose only 'uptrend' or 'downtrend'.")
+    if isinstance(prices, pd.core.frame.DataFrame):
+        if prices.empty or ('date' not in prices.columns.tolist()) or (pd.api.types.is_datetime64_ns_dtype(prices.date.dtype)==False) and prices.shape[1]!=2:
+            raise ValueError("Input must be a dataframe containing two columns, one of them called 'date' in datetime format.")
+    if isinstance(prices, pd.core.frame.DataFrame)==False:
+        raise ValueError("Input must be a dataframe containing two columns, one of them called 'date' in datetime format.")
+    if quantile is not None and limit is not None:
+        raise ValueError("Choose just one parameter (quantile or limit).")
 
-def get_peak_valley(price, stock):
+
+def get_peak_valley(price, stock): # pragma: no cover
     peak   = price[stock].max()
     valley = price[stock].min()
     peak_date = price[price[stock]==peak].date.values[0]
     valley_date = price[price[stock]==valley].date.values[0]
     return peak, valley, peak_date, valley_date
     
-def _to_frame_maxdd(array, trend="downtrend"):
+def _to_frame_maxdd(array, trend="downtrend"): # pragma: no cover
     mdd = pd.DataFrame(array)
     mdd.columns = ['peak_price', 'valley_price', 'peak_date', 
                    'valley_date', 'maxdrawdown','time_span']
@@ -72,7 +77,7 @@ def _to_frame_maxdd(array, trend="downtrend"):
         maxmdd = maxmdd.rename(columns={"maxdrawdown":"maxrunup"})
     return maxmdd
 
-def _get_new_interval(interval, price, stock, trend="downtrend"):
+def _get_new_interval(interval, price, stock, trend="downtrend"): # pragma: no cover
     while interval.size==0:
         price = price[:-1]
         peak, valley, peak_date, valley_date = get_peak_valley(price, stock)
@@ -120,9 +125,6 @@ def detectTrend(df_prices, trend="downtrend" ,limit=5, window=21, quantile=None,
     Exemple: whether two consecutive prices is rising you might consider this pattern a trend, but if not you can adjust manually using 
     limit parameter greater than 2 or using quantile parameter as 0.95'''
     
-    if quantile is not None and limit is not None:
-        raise ValueError("Choose just one parameter (quantile or limit).")
-
     _treat_parameters(df_prices, trend, limit, window, quantile, year)
 
     start=time.time()
@@ -197,7 +199,7 @@ def detectTrend(df_prices, trend="downtrend" ,limit=5, window=21, quantile=None,
     print("Trends detected in {} secs".format(round((time.time()-start),2)))
     return getTrend5.sort_values("from"), quantileValue.to_frame()
 
-def plot_trend(df, getTrend3, stock, trend="downtrend", year=None):
+def plot_trend(df, getTrend3, stock, trend="downtrend", year=None): # pragma: no cover
     start=time.time()
     if year: df = df[df['date'].dt.year>=year]
     plt.figure(figsize=(14,5))
@@ -212,7 +214,7 @@ def plot_trend(df, getTrend3, stock, trend="downtrend", year=None):
     plt.show()
     print("Plotted in {} secs".format(round((time.time()-start),2)))
     
-def plot_maxdrawdown(df, mdd, stock, trend="downtrend", year=None, style="shadow"):
+def plot_maxdrawdown(df, mdd, stock, trend="downtrend", year=None, style="shadow"): # pragma: no cover
     if year: df = df[df['date'].dt.year>=year]
     if trend == "uptrend": color = 'green'
     elif trend == "downtrend": color = 'red'
