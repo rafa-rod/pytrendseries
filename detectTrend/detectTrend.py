@@ -60,6 +60,16 @@ def _treat_parameters(prices, trend="downtrend" ,limit=5, window=1, quantile=Non
 
 
 def get_peak_valley(price, stock): # pragma: no cover
+    '''Capture peak value  (max value of the serie), valley value (minimum value of the serie)
+    Parameters:
+        price (dataframe): serie
+        stock (string):    column name of dataframe
+    Returns:
+        peak (float/int):       max value of the serie
+        valley (float/int):     min value of the serie
+        peak_date (datetime):   date in which max value of the serie occurs
+        valley_date (datetime): date in which min value of the serie occurs
+    '''
     peak   = price[stock].max()
     valley = price[stock].min()
     peak_date = price[price[stock]==peak].date.values[0]
@@ -67,6 +77,7 @@ def get_peak_valley(price, stock): # pragma: no cover
     return peak, valley, peak_date, valley_date
     
 def _to_frame_maxdd(array, trend="downtrend"): # pragma: no cover
+    '''Convert resultant array of maxdrawdown into pandas.dataframe'''
     mdd = pd.DataFrame(array)
     mdd.columns = ['peak_price', 'valley_price', 'peak_date', 
                    'valley_date', 'maxdrawdown','time_span']
@@ -78,6 +89,10 @@ def _to_frame_maxdd(array, trend="downtrend"): # pragma: no cover
     return maxmdd
 
 def _get_new_interval(interval, price, stock, trend="downtrend"): # pragma: no cover
+    '''Whether the end of the serie the price at this point does not satisfy condition:
+       price<=peak and price>=valley. So has no warranty to be the interval that contains maxdrawdown.
+       This function search for new interval to satisfy condition.
+    '''
     while interval.size==0:
         price = price[:-1]
         peak, valley, peak_date, valley_date = get_peak_valley(price, stock)
@@ -89,6 +104,15 @@ def _get_new_interval(interval, price, stock, trend="downtrend"): # pragma: no c
     return peak, valley, peak_date, valley_date, interval
 
 def max_trend(price, stock, trend="downtrend", year=None):
+    '''Given the serie, this function search of maxdrawdown or maxrun up.
+    Parameters:
+        price (dataframe): serie
+        stock (string):    column name of dataframe
+        trend (string):    the desired trend to be analyzed
+        year  (int):       optional, when is desire to analyse a specif part of the serie by filterring year.
+    Returns:
+        mxtrend_df (dataframe): dataframe with all data of the points found.
+    '''
     start=time.time()
     if year: price = price[price['date'].dt.year>=year]
         
@@ -118,13 +142,19 @@ def max_trend(price, stock, trend="downtrend", year=None):
     return mxtrend_df
 
 def detectTrend(df_prices, trend="downtrend" ,limit=5, window=21, quantile=None, year=None):
-    ''' Detect trend (up or down) in a timeseries dataframe with columns are date and price.
-    It is possible to select window (i.e. 30 days, 126 days, and so on) of analysis or, by default, consider all dates.
-    Using quantile (0-1) it is possible to choose trend with a specific percentil.
-    Whether using limit value, instead of using quantile, you can manually choose trend in the timeseries.
-    Exemple: whether two consecutive prices is rising you might consider this pattern a trend, but if not you can adjust manually using 
-    limit parameter greater than 2 or using quantile parameter as 0.95'''
-    
+    '''It searches for trends on timeseries.
+    Parameters:
+        df_price (dataframe): timeserie.
+        trend    (string):    the desired trend to be analyzed.
+        limit    (int):       optional, the minimum value that represents the number of consecutive days (or anohter period of time) to be considered a trend.
+        window   (int):       optional, the maximum period of time to be considered a trend.
+        quantile (float):     optional, similar to limit parameter that represents the percentage of correspondency of "limit" most found.
+        year     (int):       optional, when is desire to analyse a specif part of the serie by filterring year.
+    Returns:
+        getTrend5 (dataframe): dataframe with all interval of trend found.
+        quantile  (dataframe): dataframe showing the percentage/days that represents the whole consective days to be considered a trend.
+    '''
+
     _treat_parameters(df_prices, trend, limit, window, quantile, year)
 
     start=time.time()
@@ -200,6 +230,15 @@ def detectTrend(df_prices, trend="downtrend" ,limit=5, window=21, quantile=None,
     return getTrend5.sort_values("from"), quantileValue.to_frame()
 
 def plot_trend(df, getTrend3, stock, trend="downtrend", year=None): # pragma: no cover
+    '''To plot all trend found.
+    Parameters:
+        df        (dataframe): timeserie.
+        getTrend3 (dataframe): dataframe with all interval of trend found in timeserie.
+        trend     (string):    the desired trend to be analyzed.
+        year      (int):       optional, when is desire to analyse a specif part of the serie by filterring year.
+    Returns:
+        simple matplotlib chart
+    '''
     start=time.time()
     if year: df = df[df['date'].dt.year>=year]
     plt.figure(figsize=(14,5))
@@ -215,6 +254,16 @@ def plot_trend(df, getTrend3, stock, trend="downtrend", year=None): # pragma: no
     print("Plotted in {} secs".format(round((time.time()-start),2)))
     
 def plot_maxdrawdown(df, mdd, stock, trend="downtrend", year=None, style="shadow"): # pragma: no cover
+    '''To plot all maximum trend found.
+    Parameters:
+        df    (dataframe): timeserie.
+        mdd   (dataframe): dataframe with interval of maximum trend found.
+        trend (string):    the desired trend to be analyzed.
+        year  (int):       optional, when is desire to analyse a specif part of the serie by filterring year.
+        style (string):    optional, you might change style of the chart.
+    Returns:
+        the chart in a desired style
+    '''
     if year: df = df[df['date'].dt.year>=year]
     if trend == "uptrend": color = 'green'
     elif trend == "downtrend": color = 'red'
