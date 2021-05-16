@@ -18,7 +18,7 @@
 <!-- content -->
 
 **DetectTrend** is a Python library for detection of trends in time series like: stock prices, monthly sales, daily temperature of a city and so on.
-The input data must be a pandas.DataFrame format with two columns only: date (datetime format) and observed data (float or int format). The first column must be named as **date** and the second one could be named as you desire.
+The input data must be a `pandas.DataFrame` format containing two columns: date (datetime format) and observed data (float or int format). The first column must be named as **date** and the second one could be named as you desire. Follow example below:
 
 ```python
 import pandas as pd
@@ -29,8 +29,7 @@ filtered_data = filtered_data.sort_values("date")
 filtered_data["date"] = pd.to_datetime(filtered_data["date"])
 ```
 
-Once some trend is identified, detectTrend provides period on trend, drawdown, maximum dradown, or buildup in case of uptrend and a plot with all trends found.
-
+Once some trend is identified, **detectTrend** provides period on trend, drawdown, maximum dradown (or buildup in case of uptrend) and a plot with all trends found.
 
 ## Why detectTrend is important?
 
@@ -41,8 +40,8 @@ Detection of trends could be used in machine learning algorithms such as classif
 Inform:
  - type of trend you desire to investigate => downtrend or uptrend;
  - window or maximum period of a trend (example: 60 days considering 1 day as 1 period) **optional**;
- - minimum period that you consider a trend (default 5 periods) **optional**;
- - instead of minimum period, you may inform the quantile of time span such as 0.8 (80%).
+ - the minimum value that represents the number of consecutive days (or anohter period of time) to be considered a trend (default 5 periods) **optional**;
+ - instead of minimum period, you may inform the quantile of time span (consecutive days in trend) such as 0.8 (80%).
 
 ```python
 from detectTrend import detectTrend
@@ -54,7 +53,7 @@ window = 126 #6 months
 trends_detected, statistcs = detectTrend(filtered_data, trend=trend, window=window)
 ```
 
-The variable `trends_detected` is a dataframe that contais the initial and end date of each trend, the prices of each date, time span of each trend and the drawdown of each trend. Let's see rhe first five rows of this dataframe:
+The variable `trends_detected` is a dataframe that contains the initial and end date of each trend, the prices of each date, time span of each trend and the drawdown of each trend. Let's see the first five rows of this dataframe:
 
 ```
 | from                | to                  |   price0 |   price1 |   indice_from |   indice_to |   time_span |   drawdown |
@@ -66,11 +65,11 @@ The variable `trends_detected` is a dataframe that contais the initial and end d
 | 2000-06-08 00:00:00 | 2000-06-15 00:00:00 |  6.30359 |  6.1646  |           108 |         113 |           5 |  0.0220487 |
 ```
 
-The output statistcs shows the basic statistics such as: minimum, maximum (must be equal to window variable) and other percentiles of all periods of trends.
-This is important if you want to cut all small trends detected. By default, the limit variable cut off all trends with 5 periods detected. 
+The output `statistcs` shows the basic statistics such as: minimum, maximum (must be equal to window variable) and other percentiles of all periods of trends.
+This is important if you want to filter all small and unnecessary trends detected such as: trend with only 2 consecutive days. By default, the limit variable cut off all trends with 5 periods found. 
 The statistcs exhibit all trend with no cut off at all.
 
-Let's see the statistcs:
+Let's see the `statistcs`:
 
 ```
 |       |   time_span |
@@ -128,11 +127,11 @@ To visualize all uptrends found, inform `trend='uptrend'`:
 <img src="https://github.com/rafa-rod/detectTrend/blob/main/media/plot_uptrend.png" style="width:60%;"/>
 </center>
 
-The maximum drawdown it is calculate by call function `maxdradown` returning: peak and valley values, data in which they occurred and the maxdrawdown value.
+The maximum drawdown or maximum run up is calculate calling the function `max_trend` which return: peak and valley values, data in which they occurred and the maxdrawdown/axrunup value.
 
 ```python
-from detectTrend import maxdradown
-maxdd = maxdradown(filtered_data, trends_detected, year) 
+from detectTrend import max_trend
+maxdd = max_trend(filtered_data, stock, trends_detected, year) 
 ```
 
 ```
@@ -163,11 +162,7 @@ plot_maxdrawdown(filtered_data, maxdd, stock, trend, year, style="area")
 </center>
 
 
-If you select plotly style, you must install `plotly` package:
-
-```bash
-pip install plotly
-```
+If you select plotly style, make sure you have `plotly` package already installed:
 
 ```python
 from detectTrend import plot_maxdrawdown
