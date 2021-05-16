@@ -1,6 +1,12 @@
 # -*- coding: utf-8 -*-
 from setuptools import setup
 
+from os import path
+this_directory = path.abspath(path.dirname(__file__))
+
+with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
+
 packages = \
 ['detecttrend']
 
@@ -17,7 +23,8 @@ setup_kwargs = {
     'name': 'detecttrend',
     'version': '0.1.0',
     'description': 'Detect trends on time series.',
-    'long_description': None,
+    'long_description':long_description,
+    'long_description_content_type':'text/markdown',
     'author': 'Rafael Rodrigues',
     'author_email': 'rafael.rafarod@gmail.com',
     'maintainer': None,
