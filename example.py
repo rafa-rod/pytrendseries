@@ -4,7 +4,7 @@ from random import randrange
 import pandas as pd
 import numpy as np
 
-from detectTrend import *
+from detecttrend import *
 
 '''Testing examples with integer random data'''
 

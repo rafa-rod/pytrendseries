@@ -6,6 +6,9 @@ __pycache__/
 *$py.class
 *.pyc
 
+#read pypi
+README_pypi.md
+
 # C extensions
 *.so
 

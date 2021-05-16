@@ -1,5 +1,5 @@
 <p align="center">
-  <img width=60% src="https://github.com/rafa-rod/detectTrend/blob/main/media/maxdd_area.png">
+  <img width=60% src="https://github.com/rafa-rod/detecttrend/blob/main/media/maxdd_area.png">
 </p>
 
 <!-- buttons -->
@@ -10,14 +10,14 @@
     <a href="https://opensource.org/licenses/MIT">
         <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg"
             alt="MIT license"></a> &nbsp;
-      <a href="https://codecov.io/gh/rafa-rod/detectTrend">
-        <img src="https://codecov.io/gh/rafa-rod/detectTrend/branch/main/graph/badge.svg?token=98EMCTZTOY"/>
+      <a href="https://codecov.io/gh/rafa-rod/detecttrend">
+        <img src="https://codecov.io/gh/rafa-rod/detecttrend/branch/main/graph/badge.svg?token=98EMCTZTOY"/>
       </a>
 </p>
 
 <!-- content -->
 
-**DetectTrend** is a Python library for detection of trends in time series like: stock prices, monthly sales, daily temperature of a city and so on.
+**detecttrend** is a Python library for detection of trends in time series like: stock prices, monthly sales, daily temperature of a city and so on.
 The input data must be a `pandas.DataFrame` format containing two columns: date (datetime format) and observed data (float or int format). The first column must be named as **date** and the second one could be named as you desire. Follow example below:
 
 ```python
@@ -29,9 +29,25 @@ filtered_data = filtered_data.sort_values("date")
 filtered_data["date"] = pd.to_datetime(filtered_data["date"])
 ```
 
-Once some trend is identified, **detectTrend** provides period on trend, drawdown, maximum dradown (or buildup in case of uptrend) and a plot with all trends found.
+Once some trend is identified, **detecttrend** provides period on trend, drawdown, maximum dradown (or buildup in case of uptrend) and a plot with all trends found.
 
-## Why detectTrend is important?
+## Installation
+
+### Using pip
+
+You can install using the pip package manager by running:
+
+'''bash
+pip install detecttrend
+'''
+
+Alternatively, you could install the latest version directly from Github:
+
+'''bash 
+pip install https://github.com/rafa-rod/detectTrend/archive/refs/heads/main.zip
+'''
+
+## Why detecttrend is important?
 
 Detection of trends could be used in machine learning algorithms such as classification problems like binary (1 = uptrend, 0 = otherwise) or non-binary classifications (1 = uptrend, -1 = downtrend, 0 = otherwise). Besides that, could be used in prediction problems.
 
@@ -44,13 +60,13 @@ Inform:
  - instead of minimum period, you may inform the quantile of time span (consecutive days in trend) such as 0.8 (80%).
 
 ```python
-from detectTrend import detectTrend
+from detecttrend import detecttrend
 
 trend = "downtrend"
 stock = "close_price"
 window = 126 #6 months
 
-trends_detected, statistcs = detectTrend(filtered_data, trend=trend, window=window)
+trends_detected, statistcs = detecttrend(filtered_data, trend=trend, window=window)
 ```
 
 The variable `trends_detected` is a dataframe that contains the initial and end date of each trend, the prices of each date, time span of each trend and the drawdown of each trend. Let's see the first five rows of this dataframe:
@@ -98,11 +114,11 @@ The easiest way to vizualize the trends detected, just call `plot_trend` functio
 All trends detected, with maximum window informed and the minimum informed by the limit value, will be displayed.
 
 ```python
-from detectTrend import plot_trend
+from detecttrend import plot_trend
 plot_trend(filtered_data, trends_detected, stock, trend)
 ```
 <center>
-<img src="https://github.com/rafa-rod/detectTrend/blob/main/media/plot_trend_whole_serie.png" style="width:60%;"/>
+<img src="https://github.com/rafa-rod/detecttrend/blob/main/media/plot_trend_whole_serie.png" style="width:60%;"/>
 </center>
 
 It is also possible to filter data by informing year variable. In this example, the series contains data after year 2005.
@@ -110,27 +126,27 @@ It is also possible to filter data by informing year variable. In this example, 
 ```python
 year = 2005
 
-trends_detected, _ = detectTrend(filtered_data, trend=trend, limit=21,
+trends_detected, _ = detecttrend(filtered_data, trend=trend, limit=21,
                                       window=janela, year=year)
 
 #same:
-trends_detected, _ = detectTrend(filtered_data, trend=trend, quantile=0.85,
+trends_detected, _ = detecttrend(filtered_data, trend=trend, quantile=0.85,
                                       window=janela, year=year)
 ```
 <center>
-<img src="https://github.com/rafa-rod/detectTrend/blob/main/media/plot_trend.png" style="width:60%;"/>
+<img src="https://github.com/rafa-rod/detecttrend/blob/main/media/plot_trend.png" style="width:60%;"/>
 </center>
 
 To visualize all uptrends found, inform `trend='uptrend'`:
 
  <center>
-<img src="https://github.com/rafa-rod/detectTrend/blob/main/media/plot_uptrend.png" style="width:60%;"/>
+<img src="https://github.com/rafa-rod/detecttrend/blob/main/media/plot_uptrend.png" style="width:60%;"/>
 </center>
 
 The maximum drawdown or maximum run up is calculate calling the function `max_trend` which return: peak and valley values, data in which they occurred and the maxdrawdown/axrunup value.
 
 ```python
-from detectTrend import max_trend
+from detecttrend import max_trend
 maxdd = max_trend(filtered_data, stock, trends_detected, year) 
 ```
 
@@ -143,33 +159,33 @@ maxdd = max_trend(filtered_data, stock, trends_detected, year)
 To exhibit the maximium drawdown of the time series just call `plot_maxdrawdown` function and select the style of the plot: shadow, area or plotly.
 
 ```python
-from detectTrend import plot_maxdrawdown
+from detecttrend import plot_maxdrawdown
 plot_maxdrawdown(filtered_data, maxdd, stock, trend, year, style="shadow")
 ```
 
 <center>
-<img src="https://github.com/rafa-rod/detectTrend/blob/main/media/maxdd_shadow.png" style="width:60%;"/>
+<img src="https://github.com/rafa-rod/detecttrend/blob/main/media/maxdd_shadow.png" style="width:60%;"/>
 </center>
 
 
 ```python
-from detectTrend import plot_maxdrawdown
+from detecttrend import plot_maxdrawdown
 plot_maxdrawdown(filtered_data, maxdd, stock, trend, year, style="area")
 ```
 
 <center>
-<img src="https://github.com/rafa-rod/detectTrend/blob/main/media/maxdd_area.png" style="width:60%;"/>
+<img src="https://github.com/rafa-rod/detecttrend/blob/main/media/maxdd_area.png" style="width:60%;"/>
 </center>
 
 
 If you select plotly style, make sure you have `plotly` package already installed:
 
 ```python
-from detectTrend import plot_maxdrawdown
+from detecttrend import plot_maxdrawdown
 plot_maxdrawdown(filtered_data, maxdd, stock, trend, year, style="plotly")
 ```
 
 <center>
-<img src="https://github.com/rafa-rod/detectTrend/blob/main/media/maxdd_plotly.png" style="width:60%;"/>
+<img src="https://github.com/rafa-rod/detecttrend/blob/main/media/maxdd_plotly.png" style="width:60%;"/>
 </center>
 

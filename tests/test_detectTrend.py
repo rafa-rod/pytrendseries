@@ -8,7 +8,7 @@ sys.path.append(path)
 path2 = "../detectTrend/tests/resource"
 sys.path.append(path2)
 
-from detectTrend import *
+from detecttrend import *
 
 class TestClass():
 

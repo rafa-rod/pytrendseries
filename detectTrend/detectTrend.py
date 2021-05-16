@@ -141,7 +141,7 @@ def max_trend(price, stock, trend="downtrend", year=None):
     print("MaxDrawDown/Run Up finished in {} secs".format(round((time.time()-start),2)))
     return mxtrend_df
 
-def detectTrend(df_prices, trend="downtrend" ,limit=5, window=21, quantile=None, year=None):
+def detecttrend(df_prices, trend="downtrend" ,limit=5, window=21, quantile=None, year=None):
     '''It searches for trends on timeseries.
     Parameters:
         df_price (dataframe): timeserie.

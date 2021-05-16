@@ -8,11 +8,11 @@ with open(path.join(this_directory, 'README_pypi.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 packages = \
-['detectTrend']
+['detecttrend']
 
 package_data = \
 {'': ['*'],
- 'detectTrend': ['.github/workflows/*',
+ 'detecttrend': ['.github/workflows/*',
                  '.pytest_cache/*',
                  '.pytest_cache/v/cache/*']}
 
@@ -20,8 +20,8 @@ install_requires = \
 ['matplotlib>=3.4.1,<4.0.0', 'pandas>=1.2.4,<2.0.0', 'tqdm>=4.60.0,<5.0.0']
 
 setup_kwargs = {
-    'name': 'detectTrend',
-    'version': '0.1.2',
+    'name': 'detecttrend',
+    'version': '0.1.3',
     'description': 'Detect trends on time series.',
     'long_description':long_description,
     'long_description_content_type':'text/markdown',
