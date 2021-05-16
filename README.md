@@ -37,15 +37,15 @@ Once some trend is identified, **detecttrend** provides period on trend, drawdow
 
 You can install using the pip package manager by running:
 
-'''bash
+```sh
 pip install detecttrend
-'''
+```
 
 Alternatively, you could install the latest version directly from Github:
 
-'''bash 
+```sh
 pip install https://github.com/rafa-rod/detectTrend/archive/refs/heads/main.zip
-'''
+```
 
 ## Why detecttrend is important?
 
