@@ -21,7 +21,7 @@ install_requires = \
 
 setup_kwargs = {
     'name': 'detecttrend',
-    'version': '0.1.3',
+    'version': '0.1.4',
     'description': 'Detect trends on time series.',
     'long_description':long_description,
     'long_description_content_type':'text/markdown',
