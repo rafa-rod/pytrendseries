@@ -4,7 +4,7 @@ from setuptools import setup
 from os import path
 this_directory = path.abspath(path.dirname(__file__))
 
-with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+with open(path.join(this_directory, 'README_pypi.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 packages = \
@@ -21,7 +21,7 @@ install_requires = \
 
 setup_kwargs = {
     'name': 'detecttrend',
-    'version': '0.1.0',
+    'version': '0.1.1',
     'description': 'Detect trends on time series.',
     'long_description':long_description,
     'long_description_content_type':'text/markdown',
