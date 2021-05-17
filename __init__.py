@@ -1,5 +1,7 @@
 from .pytrendseries import *
 
-__all__ = ['detectTrend',
+__version__ = '0.1.0'
+
+__all__ = ['detecttrend',
 			'maxtrend',
 			'vizplot']
