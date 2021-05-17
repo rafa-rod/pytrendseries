@@ -60,13 +60,13 @@ Inform:
  - instead of minimum period, you may inform the quantile of time span (consecutive days in trend) such as 0.8 (80%).
 
 ```python
-import pytrendseries.detecttrend as dtrend
+from pytrendseries import detecttrend
 
 trend = "downtrend"
 stock = "close_price"
 window = 126 #6 months
 
-trends_detected, statistcs = dtrend.detecttrend(filtered_data, trend=trend, window=window)
+trends_detected, statistcs = detecttrend(filtered_data, trend=trend, window=window)
 ```
 
 The variable `trends_detected` is a dataframe that contains the initial and end date of each trend, the prices of each date, time span of each trend and the drawdown of each trend. Let's see the first five rows of this dataframe:
@@ -126,11 +126,11 @@ It is also possible to filter data by informing year variable. In this example, 
 ```python
 year = 2005
 
-trends_detected, _ = dtrend.detecttrend(filtered_data, trend=trend, limit=21,
+trends_detected, _ = detecttrend(filtered_data, trend=trend, limit=21,
                                       window=janela, year=year)
 
 #same:
-trends_detected, _ = dtrend.detecttrend(filtered_data, trend=trend, quantile=0.85,
+trends_detected, _ = detecttrend(filtered_data, trend=trend, quantile=0.85,
                                       window=janela, year=year)
 ```
 <center>
