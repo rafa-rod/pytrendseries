@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
 from setuptools import setup
-
+import subprocess
 from os import path
+
 this_directory = path.abspath(path.dirname(__file__))
 
 with open(path.join(this_directory, 'README_pypi.md'), encoding='utf-8') as f:
     long_description = f.read()
+
+out = subprocess.Popen(['python', path.join(this_directory,'version.py')], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+stdout, _ = out.communicate()
+version = str(stdout)
+print(version)
 
 packages = \
 ['pytrendseries']
@@ -23,7 +29,7 @@ install_requires = \
 
 setup_kwargs = {
     'name': 'pytrendseries',
-    'version': '0.1.4',
+    'version': version,
     'description': 'Detect trend in time series.',
     'long_description':long_description,
     'long_description_content_type':'text/markdown',
