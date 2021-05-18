@@ -23,6 +23,7 @@ class TestClass():
             prices = prices[["period",'close']]
             prices = prices.rename(columns={"period":"date", "close":"close_price"})
             prices["date"] = pd.to_datetime(prices["date"])
+
             self.df_prices = prices
             self.price = self.df_prices.values
             self.stock = 'close_price'

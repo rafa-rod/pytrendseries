@@ -147,7 +147,7 @@ The maximum drawdown or maximum run up is calculate calling the function `max_tr
 
 ```python
 from pytrendseries import maxtrend
-maxdd = maxtrend.getmaxtrend(filtered_data, stock, trends_detected, year) 
+maxdd = maxtrend.getmaxtrend(filtered_data, stock, trend, year) 
 ```
 
 ```

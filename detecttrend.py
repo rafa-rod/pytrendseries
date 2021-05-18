@@ -69,7 +69,6 @@ def detecttrend(df_prices, trend="downtrend" ,limit=5, window=21, quantile=None,
         getTrend5 (dataframe): dataframe with all interval of trend found.
         quantile  (dataframe): dataframe showing the percentage/days that represents the whole consective days to be considered a trend.
     '''
-
     _treat_parameters(df_prices, trend, limit, window, quantile, year)
 
     start=time.time()
