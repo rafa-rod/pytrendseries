@@ -156,6 +156,12 @@ maxdd = maxtrend.getmaxtrend(filtered_data, stock, trend, year)
 |        52.51 |            4.2 | 2008-05-21 00:00:00     | 2016-01-26 00:00:00       |      0.920015 | 2806 days 00:00:00 |
 ```
 
+Instead, you may want to known the maximum drawdown (maximum run up) according to informed window. To do that, just code:
+
+```python
+maxdd_in_window = trends_detected.sort_values("drawdown",ascending=False)["drawdown"][0]
+```
+
 To exhibit the maximium drawdown of the time series just call `plot_maxdrawdown` function and select the style of the plot: shadow, area or plotly.
 
 ```python
