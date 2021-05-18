@@ -10,8 +10,8 @@ with open(path.join(this_directory, 'README_pypi.md'), encoding='utf-8') as f:
 
 out = subprocess.Popen(['python', path.join(this_directory,'version.py')], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 stdout, _ = out.communicate()
-version = str(stdout)
-print(version.strip())
+version = str(stdout).strip()
+print(version)
 
 packages = \
 ['pytrendseries']
