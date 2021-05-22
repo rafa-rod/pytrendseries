@@ -3,13 +3,13 @@ language: python
 python:
   - "3.8"
 
-sudo: required
+os: osx
 
 install:
   - pip install coveralls
 
 script:
-  - coverage run --source=pytrendseries setup.py test
+  - python setup.py test
 
 after_success:
   - coveralls
