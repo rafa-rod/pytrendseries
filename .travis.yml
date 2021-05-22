@@ -1,0 +1,25 @@
+language: python
+
+matrix:
+  fast_finish: true
+  include:
+    - python: 3.8
+      dist: xenial
+
+install:
+  - pip install poetry tox tox-travis coveralls
+
+script:
+  - tox
+
+after_success:
+  - coveralls
+
+deploy:
+  - provider: script
+    script: poetry publish --username Ovv --password $PYPI_PASS --build
+    on:
+      repo: pytrendseries
+      branch: master
+      python: '3.8'
+      tags: true
