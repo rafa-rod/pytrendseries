@@ -6,6 +6,8 @@ matrix:
     - python: 3.8
       dist: xenial
 
+os: osx
+
 install:
   - pip install poetry tox tox-travis coveralls
 
