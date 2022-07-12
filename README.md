@@ -18,18 +18,18 @@
 <!-- content -->
 
 **pytrendseries** is a Python library for detection of trends in time series like: stock prices, monthly sales, daily temperature of a city and so on.
-The input data must be a `pandas.DataFrame` format containing two columns: date (datetime format) and observed data (float or int format). The first column must be named as **date** and the second one could be named as you desire. Follow example below:
+The input data must be a `pandas.DataFrame` format containing one column as observed data (in float or int format). Follow example below:
 
 ```python
 import pandas as pd
 data = pd.read_csv("tests/resource/stock_prices.csv")
-filtered_data = data[['period','close']]
-filtered_data.columns = ['date','close_price']
-filtered_data = filtered_data.sort_values("date")
-filtered_data["date"] = pd.to_datetime(filtered_data["date"])
+filtered_data = data[['period','close']].set_index("period")
+filtered_data.columns = ['close_price']
+filtered_data.index = pd.to_datetime(filtered_data.index)
+filtered_data.index = filtered_data.sort_index()
 ```
 
-Once some trend is identified, **pytrendseries** provides period on trend, drawdown, maximum dradown (or buildup in case of uptrend) and a plot with all trends found.
+Once some trend is identified, **pytrendseries** provides period on trend, drawdown, maximum drawdown (or buildup in case of uptrend) and a plot with all trends found.
 
 ## Installation
 
@@ -60,13 +60,12 @@ Inform:
  - instead of minimum period, you may inform the quantile of time span (consecutive days in trend) such as 0.8 (80%).
 
 ```python
-from pytrendseries import detecttrend
+import pytrendseries
 
 trend = "downtrend"
-stock = "close_price"
 window = 126 #6 months
 
-trends_detected, statistcs = detecttrend(filtered_data, trend=trend, window=window)
+trends_detected, statistcs = pytrendseries.detecttrend(filtered_data, trend=trend, window=window)
 ```
 
 The variable `trends_detected` is a dataframe that contains the initial and end date of each trend, the prices of each date, time span of each trend and the drawdown of each trend. Let's see the first five rows of this dataframe:
@@ -114,8 +113,8 @@ The easiest way to vizualize the trends detected, just call `plot_trend` functio
 All trends detected, with maximum window informed and the minimum informed by the limit value, will be displayed.
 
 ```python
-from pytrendseries import vizplot
-vizplot.plot_trend(filtered_data, trends_detected, stock, trend)
+import pytrendseries
+pytrendseries.vizplot.plot_trend(filtered_data, trends_detected, trend)
 ```
 <center>
 <img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/plot_trend_whole_serie.png" style="width:60%;"/>
@@ -126,11 +125,11 @@ It is also possible to filter data by informing year variable. In this example, 
 ```python
 year = 2005
 
-trends_detected, _ = detecttrend(filtered_data, trend=trend, limit=21,
+trends_detected, _ = pytrendseries.detecttrend(filtered_data, trend=trend, limit=21,
                                       window=janela, year=year)
 
 #same:
-trends_detected, _ = detecttrend(filtered_data, trend=trend, quantile=0.85,
+trends_detected, _ = pytrendseries.detecttrend(filtered_data, trend=trend, quantile=0.85,
                                       window=janela, year=year)
 ```
 <center>
@@ -143,11 +142,11 @@ To visualize all uptrends found, inform `trend='uptrend'`:
 <img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/plot_uptrend.png" style="width:60%;"/>
 </center>
 
-The maximum drawdown or maximum run up is calculate calling the function `max_trend` which return: peak and valley values, data in which they occurred and the maxdrawdown/axrunup value.
+The maximum drawdown or maximum run up is calculate calling the function `max_trend` which return: peak and valley values, data in which they occurred and the maxdrawdown/maxrunup value.
 
 ```python
-from pytrendseries import maxtrend
-maxdd = maxtrend.getmaxtrend(filtered_data, stock, trend, year) 
+import pytrendseries
+maxdd = pytrendseries.getmaxtrend(filtered_data, trend, year) 
 ```
 
 ```
@@ -159,14 +158,14 @@ maxdd = maxtrend.getmaxtrend(filtered_data, stock, trend, year)
 Instead, you may want to known the maximum drawdown (maximum run up) according to informed window. To do that, just code:
 
 ```python
-maxdd_in_window = trends_detected.sort_values("drawdown",ascending=False)["drawdown"][0]
+maxdd_in_window = trends_detected.sort_values("drawdown",ascending=False).iloc[0:1]
 ```
 
 To exhibit the maximium drawdown of the time series just call `plot_maxdrawdown` function and select the style of the plot: shadow, area or plotly.
 
 ```python
-from pytrendseries import vizplot
-vizplot.plot_maxdrawdown(filtered_data, maxdd, stock, trend, year, style="shadow")
+import pytrendseries
+pytrendseries.plot_maxdrawdown(filtered_data, maxdd, trend, year, style="shadow")
 ```
 
 <center>
@@ -175,8 +174,8 @@ vizplot.plot_maxdrawdown(filtered_data, maxdd, stock, trend, year, style="shadow
 
 
 ```python
-from pytrendseries import vizplot
-vizplot.plot_maxdrawdown(filtered_data, maxdd, stock, trend, year, style="area")
+import pytrendseries
+pytrendseries.plot_maxdrawdown(filtered_data, maxdd, trend, year, style="area")
 ```
 
 <center>
@@ -187,8 +186,8 @@ vizplot.plot_maxdrawdown(filtered_data, maxdd, stock, trend, year, style="area")
 If you select plotly style, a interactive plot will be opened in your browser:
 
 ```python
-from pytrendseries import vizplot
-vizplot.plot_maxdrawdown(filtered_data, maxdd, stock, trend, year, style="plotly")
+import pytrendseries
+pytrendseries.plot_maxdrawdown(filtered_data, maxdd, trend, year, style="plotly")
 ```
 
 <center>

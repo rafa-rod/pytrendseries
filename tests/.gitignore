@@ -146,3 +146,6 @@ Thumbs.db
 
 # profiling data
 .prof
+
+#README for pypi.org:
+README_pypi.md

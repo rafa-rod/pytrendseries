@@ -13,9 +13,9 @@ from pytrendseries import vizplot
 def random_integer_and_continuously_increasing_data(janela, trend, limit): # pragma: no cove
 	random_series = [i+randrange(10) for i in range(1,101)]
 	random_series = pd.DataFrame(random_series)
-	random_series["date"] = sorted(pd.to_datetime(np.random.randint(1, 101, size=100), unit='d').tolist())
-	random_series.columns = ["random","date"]
-	random_series = random_series[["date","random"]]
+	random_series.index = sorted(pd.to_datetime(np.random.randint(1, 101, size=100), unit='d').tolist())
+	random_series.columns = ["random"]
+	random_series = random_series[["random"]]
 	random_series["random"].plot()
 
 	getTrend3, quantile = detecttrend.detecttrend(random_series, trend=trend, limit=limit,
@@ -35,9 +35,9 @@ random_integer_and_continuously_increasing_data(janela, trend, limit)
 def random_integer_and_continuously_decreasing_data(janela, trend, limit): # pragma: no cove
 	random_series = [i+randrange(10) for i in reversed(range(1,101))]
 	random_series = pd.DataFrame(random_series)
-	random_series["date"] = sorted(pd.to_datetime(np.random.randint(1, 101, size=100), unit='d').tolist())
-	random_series.columns = ["random","date"]
-	random_series = random_series[["date","random"]]
+	random_series.index = sorted(pd.to_datetime(np.random.randint(1, 101, size=100), unit='d').tolist())
+	random_series.columns = ["random"]
+	random_series = random_series[["random"]]
 	random_series["random"].plot()
 
 	getTrend3, quantile = detecttrend.detecttrend(random_series, trend=trend, limit=limit,
@@ -64,9 +64,9 @@ def sine_random_values_testing(janela, trend, limit): # pragma: no cove
 	    return np.sin(x) + np.random.normal(scale=0.1, size=len(x))
 
 	random_series = pd.DataFrame(f(x))
-	random_series["date"] = sorted(pd.to_datetime(np.random.randint(1, 101, size=50), unit='d').tolist())
-	random_series.columns = ["random","date"]
-	random_series = random_series[["date","random"]]
+	random_series.index = sorted(pd.to_datetime(np.random.randint(1, 101, size=50), unit='d').tolist())
+	random_series.columns = ["random"]
+	random_series = random_series[["random"]]
 	random_series["random"].plot()
 
 

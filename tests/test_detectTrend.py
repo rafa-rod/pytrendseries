@@ -20,13 +20,13 @@ class TestClass():
             self.trend = "downtrend"
             self.window = 30
             prices = pd.read_csv(os.path.join(path2, "stock_prices.csv"), index_col=0)
-            prices = prices[["period",'close']]
-            prices = prices.rename(columns={"period":"date", "close":"close_price"})
-            prices["date"] = pd.to_datetime(prices["date"])
+            prices = prices[["period",'close']].set_index("period")
+            prices = prices.rename(columns={"close":"close_price"})
+            prices.index = pd.to_datetime(prices.index)
+            prices = prices.sort_index()
 
             self.df_prices = prices
             self.price = self.df_prices.values
-            self.stock = 'close_price'
             self.test_detecttrend()
             self.test_max_trend()
             self.test_raises()
@@ -47,19 +47,19 @@ class TestClass():
             assert (output1_1["price0"] < output1_1["price1"]).unique()[0] == True
 
       def test_max_trend(self):
-            output2 = maxtrend.getmaxtrend(self.df_prices, self.stock, self.trend, self.year)
+            output2 = maxtrend.getmaxtrend(self.df_prices, self.trend, self.year)
             self.output2 = output2
             assert round(output2['maxdrawdown'].values[0], 5) == 0.63356
-            assert round(maxtrend.getmaxtrend(self.df_prices, self.stock, 'uptrend', self.year)['maxrunup'].values[0], 5) == 1.75642
+            assert round(maxtrend.getmaxtrend(self.df_prices, 'uptrend', self.year)['maxrunup'].values[0], 5) == 1.75642
             assert output2.shape[0] == 1
             assert (output2["peak_date"] < output2["valley_date"]).unique()[0] == True
             assert (output2["peak_price"] > output2["valley_price"]).unique()[0] == True
 
       def plots(self):
-      		vizplot.plot_trend(self.df_prices, self.output1, self.stock, trend=self.trend, year=self.year)
-      		vizplot.plot_maxdrawdown(self.df_prices, self.output2, self.stock, trend=self.trend, year=self.year, style="shadow")
-      		vizplot.plot_maxdrawdown(self.df_prices, self.output2, self.stock, trend=self.trend, year=self.year, style="area")
-      		vizplot.plot_maxdrawdown(self.df_prices, self.output2, self.stock, trend=self.trend, year=self.year, style="plotly")
+      		vizplot.plot_trend(self.df_prices, self.output1, trend=self.trend, year=self.year)
+      		vizplot.plot_maxdrawdown(self.df_prices, self.output2, trend=self.trend, year=self.year, style="shadow")
+      		vizplot.plot_maxdrawdown(self.df_prices, self.output2, trend=self.trend, year=self.year, style="area")
+      		vizplot.plot_maxdrawdown(self.df_prices, self.output2, trend=self.trend, year=self.year, style="plotly")
 
       def test_raises(self):
             with pytest.raises(Exception) as error1:
@@ -90,12 +90,6 @@ class TestClass():
                   detecttrend.detecttrend(self.df_prices, trend='test', window=self.window, year=self.year)
             with pytest.raises(Exception) as error14:
                   detecttrend.detecttrend(self.df_prices, trend=1, window=self.window, year=self.year)
-            with pytest.raises(Exception) as error15:
-                  detecttrend.detecttrend([1,2,3,4], trend=self.trend, window=self.window, year=self.year)
-            with pytest.raises(Exception) as error16:
-                  detecttrend.detecttrend(pd.DataFrame([1,2,3]), trend=self.trend, window=self.window, year=self.year)
-            with pytest.raises(Exception) as error17:
-                  detecttrend.detecttrend(pd.DataFrame([1,2,3],columns=["date"]), trend=self.trend, window=self.window, year=self.year)
             with pytest.raises(Exception) as error18:
                   detecttrend.detecttrend(pd.DataFrame([[1,2,3],[2,4,5]],columns=["date",'month','sales']), trend=self.trend, window=self.window, year=self.year)
             with pytest.raises(Exception) as error19:
@@ -114,10 +108,7 @@ class TestClass():
             assert str(error12.value) == "Year parameter must be a integer value."
             assert str(error13.value) == "Trend parameter must be string. Choose only 'uptrend' or 'downtrend'."
             assert str(error14.value) == "Trend parameter must be string. Choose only 'uptrend' or 'downtrend'."
-            assert str(error15.value) == "Input must be a dataframe containing two columns, one of them called 'date' in datetime format."
-            assert str(error16.value) == "Input must be a dataframe containing two columns, one of them called 'date' in datetime format."
-            assert str(error17.value) == "Input must be a dataframe containing two columns, one of them called 'date' in datetime format."
-            assert str(error18.value) == "Input must be a dataframe containing two columns, one of them called 'date' in datetime format."
+            assert str(error18.value) == "Input must be a dataframe containing one column and its index must be in datetime format."
             assert str(error19.value) == "Choose just one parameter (quantile or limit)."
 
 TestClass()

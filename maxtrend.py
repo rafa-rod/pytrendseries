@@ -8,6 +8,7 @@ Created on Mon Feb 22 21:29:38 2021
 import time
 import numpy as np
 import pandas as pd
+from typing import Union
 
 def get_peak_valley(price, stock): # pragma: no cover
     '''Capture peak value  (max value of the serie), valley value (minimum value of the serie)
@@ -22,8 +23,8 @@ def get_peak_valley(price, stock): # pragma: no cover
     '''
     peak   = price[stock].max()
     valley = price[stock].min()
-    peak_date = price[price[stock]==peak].date.values[0]
-    valley_date = price[price[stock]==valley].date.values[0]
+    peak_date = price[price[stock]==peak].index[0]
+    valley_date = price[price[stock]==valley].index[0]
     return peak, valley, peak_date, valley_date
     
 def _to_frame_maxdd(array, trend="downtrend"): # pragma: no cover
@@ -47,14 +48,14 @@ def _get_new_interval(interval, price, stock, trend="downtrend"): # pragma: no c
         price = price[:-1]
         peak, valley, peak_date, valley_date = get_peak_valley(price, stock)
         if trend.lower() == "uptrend":
-            interval = price[(price.date <= peak_date) & (price.date >= valley_date)].values
+            interval = price[(price.index <= peak_date) & (price.index >= valley_date)].values
         elif trend.lower() == "downtrend":
-            interval = price[(price.date >= peak_date) & (price.date <= valley_date)].values
+            interval = price[(price.index >= peak_date) & (price.index <= valley_date)].values
         if interval.size != 0: break   
     return peak, valley, peak_date, valley_date, interval
 
 
-def getmaxtrend(price, stock, trend="downtrend", year=None):
+def getmaxtrend(price: pd.DataFrame, trend: str = "downtrend", year: Union[bool,int] = None, **kwargs) -> pd.DataFrame:
     '''Given the serie, this function search of maxdrawdown or maxrun up.
     Parameters:
         price (dataframe): serie
@@ -65,17 +66,21 @@ def getmaxtrend(price, stock, trend="downtrend", year=None):
         mxtrend_df (dataframe): dataframe with all data of the points found.
     '''
     start=time.time()
-    if year: price = price[price['date'].dt.year>=year]
+    stock = price.columns[0]
+    if pd.api.types.is_datetime64_ns_dtype(price.index.dtype) == False:
+        price.index = pd.to_datetime(price.index, format=kwargs.get('format'))
+
+    if year: price = price[pd.DatetimeIndex(price.index).year>=year]
         
     peak, valley, peak_date, valley_date = get_peak_valley(price, stock)
     
     if trend.lower() == "uptrend":
-        interval = price[(price.date >= valley_date) & (price.date <= peak_date)].values
+        interval = price[(price.index >= valley_date) & (price.index <= peak_date)].values
         if interval.size==0:
             peak, valley, peak_date, valley_date, interval = _get_new_interval(interval, price, stock, trend)
         mxtrend = abs(peak-valley)/abs(valley)
     elif trend.lower() == "downtrend":
-        interval = price[(price.date >= peak_date) & (price.date <= valley_date)].values
+        interval = price[(price.index >= peak_date) & (price.index <= valley_date)].values
         if interval.size==0:
             peak, valley, peak_date, valley_date, interval = _get_new_interval(interval, price, stock, trend)  
         mxtrend = abs(peak-valley)/abs(peak)

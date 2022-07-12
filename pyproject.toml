@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pytrendseries"
-version = "0.1.0"
+version = "0.1.7"
 description = "Detect trend in time series."
 authors = ["Rafael Rodrigues <rafael.rafarod@gmail.com>"]
 license = "MIT"

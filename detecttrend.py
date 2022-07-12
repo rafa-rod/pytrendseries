@@ -9,6 +9,7 @@ import pandas as pd
 import time
 import numpy as np
 from tqdm import tqdm
+from typing import Union, Tuple
 
 pd.set_option('display.float_format', lambda x: '%.5f' % x)
 pd.set_option('display.max_rows',100)
@@ -18,7 +19,7 @@ pd.set_option('display.width',1000)
 import warnings
 warnings.filterwarnings('ignore')
 
-def _remove_overlap_data(getTrend): # pragma: no cover
+def _remove_overlap_data(getTrend: pd.DataFrame) -> pd.DataFrame: # pragma: no cover
     ''' Remove overlap data'''
     getTrend3 = getTrend.groupby('index_to', as_index= False).nth([0]) 
     if getTrend3.empty: getTrend3 = getTrend.copy()
@@ -48,35 +49,36 @@ def _treat_parameters(prices, trend="downtrend" ,limit=5, window=1, quantile=Non
             raise ValueError("Year parameter must be a integer value.")
     if isinstance(trend, str)==False or trend.lower() not in ["uptrend", "downtrend"]:
         raise ValueError("Trend parameter must be string. Choose only 'uptrend' or 'downtrend'.")
-    if isinstance(prices, pd.core.frame.DataFrame):
-        if prices.empty or ('date' not in prices.columns.tolist()) or (pd.api.types.is_datetime64_ns_dtype(prices.date.dtype)==False) and prices.shape[1]!=2:
-            raise ValueError("Input must be a dataframe containing two columns, one of them called 'date' in datetime format.")
-    if isinstance(prices, pd.core.frame.DataFrame)==False:
-        raise ValueError("Input must be a dataframe containing two columns, one of them called 'date' in datetime format.")
+    if isinstance(prices, pd.core.frame.DataFrame)==False or prices.empty or prices.shape[1]>1:
+        raise ValueError("Input must be a dataframe containing one column and its index must be in datetime format.")
     if quantile is not None and limit is not None:
         raise ValueError("Choose just one parameter (quantile or limit).")
 
-def detecttrend(df_prices, trend="downtrend" ,limit=5, window=21, quantile=None, year=None):
+def detecttrend(df_prices, trend: str = "downtrend", limit: int = 5, window: int = 21, quantile: Union[bool,float] = None, 
+                        year: Union[bool,int] = None, **kwargs) -> Tuple[pd.DataFrame, pd.DataFrame]:
     '''It searches for trends on timeseries.
     Parameters:
-        df_price (dataframe): timeserie.
+        df_price (dataframe): timeseries.
         trend    (string):    the desired trend to be analyzed.
-        limit    (int):       optional, the minimum value that represents the number of consecutive days (or anohter period of time) to be considered a trend.
+        limit    (int):       optional, the minimum value that represents the number of consecutive days (or another period of time) to be considered a trend.
         window   (int):       optional, the maximum period of time to be considered a trend.
         quantile (float):     optional, similar to limit parameter that represents the percentage of correspondency of "limit" most found.
         year     (int):       optional, when is desire to analyse a specif part of the serie by filterring year.
     Returns:
-        getTrend5 (dataframe): dataframe with all interval of trend found.
-        quantile  (dataframe): dataframe showing the percentage/days that represents the whole consective days to be considered a trend.
+        getTrend5 (dataframe): dataframe containing all trends within given window.
+        quantile  (dataframe): dataframe showing the percentage/days that represents the whole consecutive days considered a trend.
     '''
+    if pd.api.types.is_datetime64_ns_dtype(df_prices.index.dtype) == False:
+        df_prices.index = pd.to_datetime(df_prices.index, format=kwargs.get('format'))
+        
     _treat_parameters(df_prices, trend, limit, window, quantile, year)
 
     start=time.time()
-    df_prices = df_prices.sort_values("date")
-    if year: index_start = df_prices[df_prices['date'].dt.year>=year].index[0]
-    else: index_start = 0 
-    df=df_prices.copy()
-    df_array = df.reset_index().values
+    df_prices = df_prices.sort_index()
+    if year: index_start = df_prices.shape[0]-df_prices[pd.DatetimeIndex(df_prices.index).year>=year].shape[0]
+    else: index_start = 0
+    df = df_prices.copy()
+    df_array = df.reset_index().reset_index().values
     prices, date, index = df_array[:,2], df_array[:,1], df_array[:,0]
     getTrend = np.empty([1, 6], dtype=object)
     for i in tqdm(range(index_start,prices.shape[0]-window)):
