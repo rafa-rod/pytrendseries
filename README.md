@@ -194,7 +194,7 @@ pytrendseries.plot_maxdrawdown(filtered_data, maxdd, trend, year, style="plotly"
 <img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/maxdd_plotly.png" style="width:60%;"/>
 </center>
 
-To get time under water (tuw), just type:
+To get time underwater (tuw), just type:
 
 ```python
 import pytrendseries
@@ -212,4 +212,4 @@ The output would be (showing the tail of the dataframe):
 | 2008-05-21 |  52.51000 |  4.20000  |     0.92002 |               NaN |          NaN |
 ```
 
-The table show time underwater as NaN, it means that the timeseries still on downtrend.
+The table shows time underwater as NaN, it means that the timeseries still on downtrend.
