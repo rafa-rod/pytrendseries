@@ -56,7 +56,7 @@ Detection of trends could be used in machine learning algorithms such as classif
 Inform:
  - type of trend you desire to investigate => downtrend or uptrend;
  - window or maximum period of a trend (example: 60 days considering 1 day as 1 period) **optional**;
- - the minimum value that represents the number of consecutive days (or anohter period of time) to be considered a trend (default 5 periods) **optional**;
+ - the minimum value that represents the number of consecutive days (or another period of time) to be considered a trend (default 5 periods) **optional**;
  - instead of minimum period, you may inform the quantile of time span (consecutive days in trend) such as 0.8 (80%).
 
 ```python
