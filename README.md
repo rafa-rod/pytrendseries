@@ -26,10 +26,10 @@ data = pd.read_csv("tests/resource/stock_prices.csv")
 filtered_data = data[['period','close']].set_index("period")
 filtered_data.columns = ['close_price']
 filtered_data.index = pd.to_datetime(filtered_data.index)
-filtered_data.index = filtered_data.sort_index()
+filtered_data = filtered_data.sort_index()
 ```
 
-Once some trend is identified, **pytrendseries** provides period on trend, drawdown, maximum drawdown (or buildup in case of uptrend) and a plot with all trends found.
+Once some trend is identified, **pytrendseries** provides period on trend, drawdown, maximum drawdown (or drawup in case of uptrend) and a plot with all trends found.
 
 ## Installation
 
@@ -55,9 +55,8 @@ Detection of trends could be used in machine learning algorithms such as classif
 
 Inform:
  - type of trend you desire to investigate => downtrend or uptrend;
- - window or maximum period of a trend (example: 60 days considering 1 day as 1 period) **optional**;
- - the minimum value that represents the number of consecutive days (or another period of time) to be considered a trend (default 5 periods) **optional**;
- - instead of minimum period, you may inform the quantile of time span (consecutive days in trend) such as 0.8 (80%).
+ - window or maximum period of a trend (example: 60 days considering 1 day as 1 period);
+ - the minimum value that represents the number of consecutive days (or another period of time) to be considered a trend (default 5 periods).
 
 ```python
 import pytrendseries
@@ -65,7 +64,7 @@ import pytrendseries
 trend = "downtrend"
 window = 126 #6 months
 
-trends_detected, statistcs = pytrendseries.detecttrend(filtered_data, trend=trend, window=window)
+trends_detected = pytrendseries.detecttrend(filtered_data, trend=trend, window=window)
 ```
 
 The variable `trends_detected` is a dataframe that contains the initial and end date of each trend, the prices of each date, time span of each trend and the drawdown of each trend. Let's see the first five rows of this dataframe:
@@ -80,119 +79,96 @@ The variable `trends_detected` is a dataframe that contains the initial and end 
 | 2000-06-08 00:00:00 | 2000-06-15 00:00:00 |  6.30359 |  6.1646  |           108 |         113 |           5 |  0.0220487 |
 ```
 
-The output `statistcs` shows the basic statistics such as: minimum, maximum (must be equal to window variable) and other percentiles of all periods of trends.
-This is important if you want to filter all small and unnecessary trends detected such as: trend with only 2 consecutive days. By default, the limit variable cut off all trends with 5 periods found. 
-The statistcs exhibit all trend with no cut off at all.
-
-Let's see the `statistcs`:
-
-```
-|       |   time_span |
-|:------|------------:|
-| count |   2444      |
-| mean  |     12.5569 |
-| std   |     26.0989 |
-| min   |      1      |
-| 25%   |      1      |
-| 50%   |      2      |
-| 75%   |      8      |
-| 80%   |     12      |
-| 85%   |     18.55   |
-| 90%   |     33      |
-| 92.5% |     57.775  |
-| 95%   |     88      |
-| 97.5% |    110      |
-| 99%   |    122      |
-| max   |    126      |
-```
-
-As we just saw, the median (50% percentile) shows that 50% of trends is just 2 periods (2 days in this case), therefore the default limit of 5 it is a good cut number.
-Next, we will redefine the limit value with 21 periods.
-
 The easiest way to vizualize the trends detected, just call `plot_trend` function.
 All trends detected, with maximum window informed and the minimum informed by the limit value, will be displayed.
 
 ```python
 import pytrendseries
-pytrendseries.vizplot.plot_trend(filtered_data, trends_detected, trend)
+trend = "downtrend"
+window = 30
+year = 2020
+
+trends_detected = pytrendseries.detecttrend(filtered_data, trend=trend, window=window)
+pytrendseries.vizplot.plot_trend(filtered_data, trends_detected, trend, year)
 ```
 <center>
-<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/plot_trend_whole_serie.png" style="width:60%;"/>
-</center>
-
-It is also possible to filter data by informing year variable. In this example, the series contains data after year 2005.
-
-```python
-year = 2005
-
-trends_detected, _ = pytrendseries.detecttrend(filtered_data, trend=trend, limit=21,
-                                      window=janela, year=year)
-
-#same:
-trends_detected, _ = pytrendseries.detecttrend(filtered_data, trend=trend, quantile=0.85,
-                                      window=janela, year=year)
-```
-<center>
-<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/plot_trend.png" style="width:60%;"/>
+<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/plot_downtrend.png" style="width:60%;"/>
 </center>
 
 To visualize all uptrends found, inform `trend='uptrend'`:
+
+```python
+import pytrendseries
+window = 30
+year = 2020
+
+trends_detected = pytrendseries.detecttrend(filtered_data, trend='uptrend', window=window)
+pytrendseries.vizplot.plot_trend(filtered_data, trends_detected, 'uptrend', year)
+```
 
  <center>
 <img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/plot_uptrend.png" style="width:60%;"/>
 </center>
 
-The maximum drawdown or maximum run up is calculate calling the function `max_trend` which return: peak and valley values, data in which they occurred and the maxdrawdown/maxrunup value.
+The maximum drawdown or maximum drawup can be obtained by sorting the dataframe by column drawdown. To do that, just code:
 
 ```python
-import pytrendseries
-maxdd = pytrendseries.getmaxtrend(filtered_data, trend, year) 
+maxdd_in_window = trends_detected.sort_values("drawdown", ascending=False).iloc[0:1]
 ```
 
-```
-|   peak_price |   valley_price | peak_date_maxdrawdown   | valley_date_maxdrawdown   |   maxdrawdown | time_span          |
-|-------------:|---------------:|:------------------------|:--------------------------|--------------:|:-------------------|
-|        52.51 |            4.2 | 2008-05-21 00:00:00     | 2016-01-26 00:00:00       |      0.920015 | 2806 days 00:00:00 |
-```
-
-Instead, you may want to known the maximum drawdown (maximum run up) according to informed window. To do that, just code:
+Another way is to call the function `maxdrawdown`. Note that this result will be differente once the maximum drawdown of the intire timeseries.
 
 ```python
-maxdd_in_window = trends_detected.sort_values("drawdown",ascending=False).iloc[0:1]
+maxdd = pytrendseries.maxdrawdown(filtered_data)
 ```
 
-To exhibit the maximium drawdown of the time series just call `plot_maxdrawdown` function and select the style of the plot: shadow, area or plotly.
+You can code to vizualize as follows:
 
 ```python
-import pytrendseries
-pytrendseries.plot_maxdrawdown(filtered_data, maxdd, trend, year, style="shadow")
+import matplotlib.pyplot as plt
+
+plt.figure(figsize=(14,5))
+plt.plot(filtered_data, alpha=0.6)
+location_x = maxdd.values[:,0]
+location_y = maxdd.values[:,1]
+for i in range(location_x.shape[0]):
+    plt.axvspan(location_x[i], location_y[i], alpha=0.3, color="red")
+plt.grid(axis='x')
+plt.show()
 ```
 
 <center>
-<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/maxdd_shadow.png" style="width:60%;"/>
+<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/maxdd.png" style="width:60%;"/>
 </center>
 
+You may pass the parameter window to obtain the same result:
+
+```python
+maxdd_in_window = pytrendseries.maxdrawdown(filtered_data, window=252)
+```
+
+To vizualize all drawdowns of timeseries, call the following function:
 
 ```python
 import pytrendseries
-pytrendseries.plot_maxdrawdown(filtered_data, maxdd, trend, year, style="area")
+pytrendseries.plot_drawdowns(filtered_data, figsize = (10,4), color="gray", alpha=0.6, title="Drawdowns", axis="y")
 ```
 
 <center>
-<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/maxdd_area.png" style="width:60%;"/>
+<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/plot_drawdons.png" style="width:60%;"/>
 </center>
 
-
-If you select plotly style, a interactive plot will be opened in your browser:
+Another option is:
 
 ```python
 import pytrendseries
-pytrendseries.plot_maxdrawdown(filtered_data, maxdd, trend, year, style="plotly")
+pytrendseries.plot_evolution(filtered_data, figsize = (10,4), colors=["gray", "red"], alphas=[1,0.6])
 ```
 
 <center>
-<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/maxdd_plotly.png" style="width:60%;"/>
+<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/plot_evolution.png" style="width:60%;"/>
 </center>
+
 
 To get time underwater (tuw), just type:
 
@@ -213,3 +189,73 @@ The output would be (showing the tail of the dataframe):
 ```
 
 The table shows time underwater as NaN, it means that the timeseries still on downtrend.
+
+Another important usage of `pytrendseries` is to obtain the series of drawdowns in order to calculate the drawdown at risk or maximum drawdown at risk.
+
+```python
+import pytrendseries
+import matplotlib.pyplot as plt
+import seaborn as sns; sns.set_style("white")
+
+trend = "downtrend"
+window = 126 #6 months
+
+trends_detected = pytrendseries.detecttrend(filtered_data, trend=trend, window=window)
+
+plt.figure(figsize=(15,5))
+sns.histplot(trends_detected["drawdown"]*100, kde=True, bins=30)
+plt.ylabel("")
+plt.box(False)
+plt.annotate('Maximum Drawdown', xy=((trends_detected["drawdown"].max()-0.005)*100, 1),
+             xycoords='data',
+            xytext=(-105, 30), textcoords='offset points',color="red",
+            weight='bold',
+            arrowprops=dict(arrowstyle="->", color="r",
+                            connectionstyle='arc3,rad=-0.1'))
+plt.annotate('Quantile 97,5%', xy=((trends_detected["drawdown"].quantile(0.975)-0.005)*100, 0.2),
+             xycoords='data',
+            xytext=(-135, 30), textcoords='offset points',color="red",
+            weight='bold',
+            arrowprops=dict(arrowstyle="->", color="r",
+                            connectionstyle='arc3,rad=-0.1'))
+plt.xlabel("Drawdown (%)")
+plt.ylabel("Density", rotation=0, labelpad=-30, loc="top")
+plt.show()
+```
+
+<center>
+<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/series_drawdown.png" style="width:60%;"/>
+</center>
+
+
+```python
+import pytrendseries
+import matplotlib.pyplot as plt
+import seaborn as sns; sns.set_style("white")
+
+maxdd_in_window = maxdrawdown(filtered_data, window=126)
+
+plt.figure(figsize=(15,5))
+sns.histplot(maxdd_in_window["MaxDD"]*100, kde=True, bins=30)
+plt.ylabel("")
+plt.box(False)
+plt.annotate('Maximum Drawdown', xy=((maxdd_in_window["MaxDD"].max()-0.005)*100, 1),
+             xycoords='data',
+            xytext=(-105, 30), textcoords='offset points',color="red",
+            weight='bold',
+            arrowprops=dict(arrowstyle="->", color="r",
+                            connectionstyle='arc3,rad=-0.1'))
+plt.annotate('Quantile 95%', xy=((maxdd_in_window["MaxDD"].quantile(0.95)-0.005)*100, 0.2),
+             xycoords='data',
+            xytext=(-135, 50), textcoords='offset points',color="red",
+            weight='bold',
+            arrowprops=dict(arrowstyle="->", color="r",
+                            connectionstyle='arc3,rad=-0.1'))
+plt.xlabel("Maximum Drawdowns (%)")
+plt.ylabel("Density", rotation=0, labelpad=-30, loc="top")
+plt.show()
+```
+
+<center>
+<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/series_max_drawdown.png" style="width:60%;"/>
+</center>

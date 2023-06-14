@@ -5,7 +5,6 @@ import pandas as pd
 import numpy as np
 
 from pytrendseries import detecttrend
-from pytrendseries import maxtrend
 from pytrendseries import vizplot
 
 '''Testing examples with integer random data'''
@@ -18,14 +17,11 @@ def random_integer_and_continuously_increasing_data(janela, trend, limit): # pra
 	random_series = random_series[["random"]]
 	random_series["random"].plot()
 
-	getTrend3, quantile = detecttrend.detecttrend(random_series, trend=trend, limit=limit,
-	                                      window=janela)
+	getTrend3 = detecttrend.detecttrend(random_series, trend=trend, limit=limit, window=janela)
 
 	vizplot.plot_trend(random_series, getTrend3, "random", trend)
 
-	maxtrend = maxtrend.getmaxtrend(random_series, "random", trend)
-	vizplot.plot_maxdrawdown(random_series, maxtrend, "random", trend, style="shadow")
-	return getTrend3, quantile, maxtrend
+	return getTrend3
 
 janela, trend, limit = 3, "downtrend", 2
 random_integer_and_continuously_increasing_data(janela, trend, limit)
@@ -40,14 +36,12 @@ def random_integer_and_continuously_decreasing_data(janela, trend, limit): # pra
 	random_series = random_series[["random"]]
 	random_series["random"].plot()
 
-	getTrend3, quantile = detecttrend.detecttrend(random_series, trend=trend, limit=limit,
+	getTrend3 = detecttrend.detecttrend(random_series, trend=trend, limit=limit,
 	                                      window=janela)
 
 	vizplot.plot_trend(random_series, getTrend3, "random", trend)
 
-	maxtrend = maxtrend.getmaxtrend(random_series, "random", trend)
-	vizplot.plot_maxdrawdown(random_series, maxtrend, "random", trend, style="shadow")
-	return getTrend3, quantile, maxtrend
+	return getTrend3
 
 '''Testing downtrend with integer values in a serie with no uptrend'''
 janela, trend, limit = 3, "downtrend", 2
@@ -69,16 +63,12 @@ def sine_random_values_testing(janela, trend, limit): # pragma: no cove
 	random_series = random_series[["random"]]
 	random_series["random"].plot()
 
-
-	getTrend3, quantile = detecttrend.detecttrend(random_series, trend=trend, limit=limit,
+	getTrend3 = detecttrend.detecttrend(random_series, trend=trend, limit=limit,
 	                                      window=janela)
 
 	vizplot.plot_trend(random_series, getTrend3, "random", trend)
 
-	maxtrend = maxtrend.getmaxtrend(random_series, "random", trend)
-	vizplot.plot_maxdrawdown(random_series, maxtrend, "random", trend, style="shadow")
-
-	return getTrend3, quantile, maxtrend
+	return getTrend3
 
 '''Testing downtrend with float values in a series without long period trend'''
 janela, trend, limit = 2, "downtrend", 2
