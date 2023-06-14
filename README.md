@@ -1,7 +1,3 @@
-<p align="center">
-  <img width=60% src="https://github.com/rafa-rod/pytrendseries/blob/main/media/maxdd_area.png">
-</p>
-
 <!-- buttons -->
 <p align="center">
     <a href="https://www.python.org/">
@@ -92,7 +88,7 @@ trends_detected = pytrendseries.detecttrend(filtered_data, trend=trend, window=w
 pytrendseries.vizplot.plot_trend(filtered_data, trends_detected, trend, year)
 ```
 <center>
-<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/plot_downtrend.png" style="width:60%;"/>
+<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/plot_downtrend.png" style="width:90%;"/>
 </center>
 
 To visualize all uptrends found, inform `trend='uptrend'`:
