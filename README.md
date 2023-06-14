@@ -103,7 +103,7 @@ pytrendseries.vizplot.plot_trend(filtered_data, trends_detected, 'uptrend', year
 ```
 
  <center>
-<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/plot_uptrend.png" style="width:60%;"/>
+<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/plot_uptrend.png" style="width:90%;"/>
 </center>
 
 The maximum drawdown or maximum drawup can be obtained by sorting the dataframe by column drawdown. To do that, just code:
@@ -134,7 +134,7 @@ plt.show()
 ```
 
 <center>
-<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/maxdd.png" style="width:60%;"/>
+<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/maxdd.png" style="width:90%;"/>
 </center>
 
 You may pass the parameter window to obtain the same result:
@@ -151,7 +151,7 @@ pytrendseries.plot_drawdowns(filtered_data, figsize = (10,4), color="gray", alph
 ```
 
 <center>
-<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/plot_drawdons.png" style="width:60%;"/>
+<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/plot_drawdons.png" style="width:90%;"/>
 </center>
 
 Another option is:
@@ -162,7 +162,7 @@ pytrendseries.plot_evolution(filtered_data, figsize = (10,4), colors=["gray", "r
 ```
 
 <center>
-<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/plot_evolution.png" style="width:60%;"/>
+<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/plot_evolution.png" style="width:90%;"/>
 </center>
 
 
@@ -220,7 +220,7 @@ plt.show()
 ```
 
 <center>
-<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/series_drawdown.png" style="width:60%;"/>
+<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/series_drawdown.png" style="width:90%;"/>
 </center>
 
 
@@ -253,5 +253,5 @@ plt.show()
 ```
 
 <center>
-<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/series_max_drawdown.png" style="width:60%;"/>
+<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/series_max_drawdown.png" style="width:90%;"/>
 </center>
