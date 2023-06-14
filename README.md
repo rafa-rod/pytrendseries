@@ -186,7 +186,8 @@ The output would be (showing the tail of the dataframe):
 
 The table shows time underwater as NaN, it means that the timeseries still on downtrend.
 
-Another important usage of `pytrendseries` is to obtain the series of drawdowns in order to calculate the drawdown at risk or maximum drawdown at risk.
+Another important usage of `pytrendseries` is to obtain the series of drawdowns or series of maximum drawdowns in order to calculate the drawdown at risk or maximum drawdown at risk.
+
 
 ```python
 import pytrendseries

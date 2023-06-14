@@ -23,7 +23,6 @@ package_data = \
 install_requires = \
 ['matplotlib>=3.4.2,<4.0.0',
  'pandas>=1.2.4,<2.0.0',
- 'plotly>=4.14.3,<5.0.0',
  'pytest>=6.2.4,<7.0.0',
  'tqdm>=4.60.0,<5.0.0']
 

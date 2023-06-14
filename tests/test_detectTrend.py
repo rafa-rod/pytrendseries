@@ -3,11 +3,8 @@ import pandas as pd
 import numpy as np
 import sys, os, pytest
 
-path = "../pytrendseries/"
-sys.path.append(path)
-
-path2 = "../pytrendseries/tests/resource"
-sys.path.append(path2)
+sys.path.append("./src/pytrendseries")
+path2 = os.path.join("./tests/resource")
 
 import detecttrend
 import vizplot
@@ -28,8 +25,9 @@ class TestClass():
             self.df_prices = prices
             self.price = self.df_prices.values
             self.test_detecttrend()
-            self.test_max_trend()
-            self.test_raises()
+            self.test_maxdrawdown()
+            self.test_maxdrawdown()
+            self.test_tuw()
             self.plots()
 
       def test_detecttrend(self):
@@ -53,7 +51,7 @@ class TestClass():
             assert round(output2['MaxDD'].values[0], 5) == 0.92002
             assert output2.shape[0] == 1
             assert (output2["Date Peak"] < output2["Date Valley"]).unique()[0] == True
-            output3 = detecttrend.maxdrawdown(self.df_prices, self.window)
+            output3 = detecttrend.maxdrawdown(self.df_prices, 252)
             self.output3 = output3
             assert round(output3['MaxDD'].values[0], 5) == 0.70793
 
