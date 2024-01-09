@@ -66,6 +66,8 @@ def _calcula_MDD(precos):
                 columns=["Date Peak", "Date Valley", "Peak", "Valley", "MaxDD"],
             )
             maxdd = pd.concat([maxdd, df])
+    for col in maxdd.columns[2:]:
+        maxdd[col] = pd.to_numeric(maxdd[col])
     return maxdd[maxdd.MaxDD == maxdd.MaxDD.max()].dropna()
 
 
