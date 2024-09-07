@@ -225,7 +225,9 @@ def detecttrend(
         ]
     elif trend == "uptrend":
         getTrend2["drawup"] = [
-            abs(getTrend2["price0"].iloc[x] - getTrend2["price1"].iloc[x])
+            np.inf
+            if min(getTrend2["price0"].iloc[x], getTrend2["price1"].iloc[x])==0
+            else abs(getTrend2["price0"].iloc[x] - getTrend2["price1"].iloc[x])
             / min(getTrend2["price0"].iloc[x], getTrend2["price1"].iloc[x])
             for x in range(getTrend2.shape[0])
         ]
