@@ -21,10 +21,12 @@ package_data = \
  'detecttrend': ['.github/workflows/*']}
 
 install_requires = \
-['matplotlib>=3.4.2,<4.0.0',
- 'pandas>=1.2.4,<2.0.0',
- 'pytest>=6.2.4,<7.0.0',
+[
  'tqdm>=4.60.0,<5.0.0']
+
+extras_require = \
+{':python_version <= "3.9"': ['matplotlib<=3.7.1', 'pandas<=1.5.3'],
+ ':python_version >= "3.10"': ['matplotlib>=3.10.0', 'pandas>=2.2.3']}
 
 setup_kwargs = {
     'name': 'pytrendseries',
