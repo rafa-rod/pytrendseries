@@ -9,6 +9,9 @@
       <a href="https://codecov.io/gh/rafa-rod/detecttrend">
         <img src="https://codecov.io/gh/rafa-rod/detecttrend/branch/main/graph/badge.svg?token=98EMCTZTOY"/>
       </a>
+    <a href="https://pepy.tech/projects/pytrendseries">
+        <img src="https://static.pepy.tech/badge/pytrendseries" alt="PyPI Downloads">
+    </a>
 </p>
 
 <!-- content -->
