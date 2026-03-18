@@ -10,9 +10,10 @@ import time
 import warnings
 from typing import Dict, List, Union
 
-import detecttrend
 import numpy as np
 import pandas as pd
+
+from .detecttrend import *
 
 warnings.filterwarnings("ignore")
 
@@ -42,7 +43,7 @@ def calculate_time_under_water(
         DataFrame containing all drawdown periods with their recovery time.
         Columns: Peak Date, Recovery Date, Peak, Valley, MaxDD, Time Underwater, Status
     """
-    detecttrend._treat_parameters(df_prices, trend="downtrend", limit=1, window=1)
+    _treat_parameters(df_prices, trend="downtrend", limit=1, window=1)
 
     start_time = time.time()
 
