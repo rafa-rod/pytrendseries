@@ -32,13 +32,13 @@ def plot_trend(
     start = time.time()
     if pd.api.types.is_datetime64_ns_dtype(df.index.dtype) == False:
         df.index = pd.to_datetime(df.index, format=kwargs.get("format"))
-
-    getTrend3["from"] = pd.to_datetime(getTrend3["from"])
-    getTrend3["to"] = pd.to_datetime(getTrend3["to"])
+    
+    for col in getTrend3.columns[:1]:
+        getTrend3[col] = pd.to_datetime(getTrend3[col])
 
     if year:
         df = df[pd.DatetimeIndex(df.index).year >= year]
-        getTrend3 = getTrend3[getTrend3["from"].dt.year >= year]
+        getTrend3 = getTrend3[getTrend3[getTrend3.columns[0]].dt.year >= year]
 
     plt.figure(figsize=(14, 5))
     plt.plot(df, alpha=0.6)

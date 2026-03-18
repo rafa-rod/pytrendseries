@@ -1,4 +1,3 @@
-
 import pandas as pd
 import numpy as np
 import sys, os, pytest
@@ -9,10 +8,12 @@ path2 = os.path.join("./tests/resource")
 import detecttrend
 import vizplot
 import time_under_water as tuw
+from detecttrend import get_trends_labels
 
 class TestClass():
 
-      def __init__(self):
+      def setup_method(self):
+            """Configurações executadas antes de cada teste"""
             self.year = 2020
             self.trend = "downtrend"
             self.window = 30
@@ -24,26 +25,26 @@ class TestClass():
 
             self.df_prices = prices
             self.price = self.df_prices.values
-            self.test_detecttrend()
-            self.test_maxdrawdown()
-            self.test_maxdrawdown()
-            self.test_tuw()
-            self.plots()
+            self.output1 = None
+            self.output1_1 = None
+            self.output2 = None
+            self.output3 = None
+            self.output4 = None
 
       def test_detecttrend(self):
             output1 = detecttrend.detecttrend(self.df_prices, trend=self.trend, window=self.window)
             self.output1 = output1
-            assert (output1["from"] < output1["to"]).unique().shape[0] == 1
-            assert (output1["from"] < output1["to"]).unique()[0] == True
-            assert (output1["price0"] > output1["price1"]).unique().shape[0] == 1
-            assert (output1["price0"] > output1["price1"]).unique()[0] == True
+            assert (output1["Peak Date"] < output1["Valley Date"]).unique().shape[0] == 1
+            assert (output1["Peak Date"] < output1["Valley Date"]).unique()[0] == True
+            assert (output1["Peak"] > output1["Valley"]).unique().shape[0] == 1
+            assert (output1["Peak"] > output1["Valley"]).unique()[0] == True
 
             output1_1 = detecttrend.detecttrend(self.df_prices, trend="uptrend", window=self.window)
             self.output1_1 = output1_1
-            assert (output1_1["from"] < output1_1["to"]).unique().shape[0] == 1
-            assert (output1_1["from"] < output1_1["to"]).unique()[0] == True
-            assert (output1_1["price0"] < output1_1["price1"]).unique().shape[0] == 1
-            assert (output1_1["price0"] < output1_1["price1"]).unique()[0] == True
+            assert (output1_1["Valley Date"] < output1_1["Peak Date"]).unique().shape[0] == 1
+            assert (output1_1["Valley Date"] < output1_1["Peak Date"]).unique()[0] == True
+            assert (output1_1["Valley"] < output1_1["Peak"]).unique().shape[0] == 1
+            assert (output1_1["Valley"] < output1_1["Peak"]).unique()[0] == True
 
       def test_maxdrawdown(self):
             output2 = detecttrend.maxdrawdown(self.df_prices)
@@ -60,11 +61,22 @@ class TestClass():
             self.output4 = output4
             assert int(self.output4['time underwater'].values[0]) == 42       
 
-      def plots(self):
-            vizplot.plot_trend(self.df_prices, self.output1, trend=self.trend, year=self.year)
-            vizplot.plot_trend(self.df_prices, self.output1_1, trend="uptrend", year=self.year)
-            vizplot.plot_drawdowns(self.df_prices, figsize = (10,4), color="gray", alpha=0.6, title="Drawdowns", axis="y")
-            vizplot.plot_evolution(self.df_prices, figsize = (10,4), colors=["gray", "red"], alphas=[1,0.6])
+      def test_get_trends_labels(self):
+            df_labeled = get_trends_labels(self.df_prices.copy(), window=self.window)
+            assert 'label' in df_labeled.columns
+            assert df_labeled.shape[0] == self.df_prices.shape[0]
+            assert set(df_labeled['label'].unique()).issubset({-1, 0, 1})
+            
+            custom_labels = {"uptrend": "BUY", "downtrend": "SELL", "notrend": "HOLD"}
+            df_custom = get_trends_labels(self.df_prices.copy(), labels=custom_labels, window=self.window)
+            assert set(df_custom['label'].unique()).issubset({"BUY", "SELL", "HOLD"})
+            
+            binary_labels = {"uptrend": 1, "notrend": 0}
+            df_binary = get_trends_labels(self.df_prices.copy(), labels=binary_labels, window=self.window)
+            assert set(df_binary['label'].unique()).issubset({0, 1})
+            
+            assert df_labeled.index.equals(self.df_prices.index)
+            assert 'label' not in self.df_prices.columns
 
       def test_raises(self):
             with pytest.raises(Exception) as error1:
@@ -95,4 +107,9 @@ class TestClass():
             assert str(error14.value) == "Trend parameter must be string. Choose only 'uptrend' or 'downtrend'."
             assert str(error18.value) == "Input must be a dataframe containing one column and its index must be in datetime format."
 
-TestClass()
+      def plots(self):
+            """Teste visual, pytest nao captura"""
+            vizplot.plot_trend(self.df_prices, self.output1, trend=self.trend, year=self.year)
+            vizplot.plot_trend(self.df_prices, self.output1_1, trend="uptrend", year=self.year)
+            vizplot.plot_drawdowns(self.df_prices, figsize = (10,4), color="gray", alpha=0.6, title="Drawdowns", axis="y")
+            vizplot.plot_evolution(self.df_prices, figsize = (10,4), colors=["gray", "red"], alphas=[1,0.6])
