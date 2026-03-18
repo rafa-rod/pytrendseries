@@ -1,9 +1,10 @@
 import time
 from typing import List, Optional, Union
 
-import detecttrend
 import numpy as np
 import pandas as pd
+
+from .detecttrend import *
 
 
 def _calculate_max_drawdown_vectorized(prices_series: pd.Series) -> pd.DataFrame:
@@ -108,11 +109,9 @@ def maxdrawdown(
         df_prices.index = pd.to_datetime(df_prices.index, format=kwargs.get("format"))
 
     if window:
-        detecttrend._treat_parameters(
-            df_prices, trend="downtrend", limit=1, window=window
-        )
+        _treat_parameters(df_prices, trend="downtrend", limit=1, window=window)
     else:
-        detecttrend._treat_parameters(df_prices, trend="downtrend", limit=1, window=1)
+        _treat_parameters(df_prices, trend="downtrend", limit=1, window=1)
 
     # Normalize input to Series
     if isinstance(df_prices, pd.DataFrame):
