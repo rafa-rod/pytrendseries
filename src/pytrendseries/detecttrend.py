@@ -9,7 +9,7 @@ import pandas as pd
 import time
 import numpy as np
 from tqdm import tqdm
-from typing import Union, Tuple
+from typing import Dict, Union, Tuple
 
 pd.set_option("display.float_format", lambda x: "%.5f" % x)
 pd.set_option("display.max_rows", 100)
@@ -116,7 +116,7 @@ def detecttrend(
         limit    (int):       optional, the minimum value that represents the number of consecutive days (or another period of time) to be considered a trend.
         window   (int):       optional, the maximum period of time to be considered a trend.
     Returns:
-        getTrend5 (dataframe): dataframe containing all trends within given window.
+        getTrend2 (dataframe): dataframe containing all trends within given window.
     """
     if pd.api.types.is_datetime64_ns_dtype(df_prices.index.dtype) == False:
         df_prices.index = pd.to_datetime(df_prices.index, format=kwargs.get("format"))
@@ -223,6 +223,7 @@ def detecttrend(
             / max(getTrend2["price0"].iloc[x], getTrend2["price1"].iloc[x])
             for x in range(getTrend2.shape[0])
         ]
+        getTrend2.columns = ["Peak Date", "Valley Date", "Peak", "Valley", "index_peak", "index_valley", "time_span", "drawdown"]
     elif trend == "uptrend":
         getTrend2["drawup"] = [
             np.inf
@@ -231,6 +232,99 @@ def detecttrend(
             / min(getTrend2["price0"].iloc[x], getTrend2["price1"].iloc[x])
             for x in range(getTrend2.shape[0])
         ]
+        getTrend2.columns = ["Valley Date", "Peak Date", "Valley", "Peak", "index_valley", "index_peak", "time_span", "drawup"]
 
     print("Trends detected in {} secs".format(round((time.time() - start), 2)))
-    return getTrend2.sort_values("from")
+    return getTrend2.sort_values(getTrend2.columns[0])
+
+
+def get_trends_labels(
+    df: pd.DataFrame,
+    labels: Dict[str, Union[int, float, str]] = None,
+    window: int = 252,
+    limit: int = 5
+) -> pd.DataFrame:
+    """
+    Adds a 'label' column to the dataframe based on detected trends.
+    
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Dataframe with DatetimeIndex and 'Close' column.
+    labels : Dict[str, Union[int, float, str]], optional
+        Dictionary defining which trends to calculate and their values.
+        Example: {"uptrend": 1, "downtrend": -1, "notrend": 0}
+        Default: {"uptrend": 1, "downtrend": -1, "notrend": 0}
+    window : int, optional
+        Window for trend detection. Default: 252
+    limit : int, optional
+        Limit for trend detection. Default: 5
+    
+    Returns
+    -------
+    pd.DataFrame
+        Dataframe with the new 'label' column added.
+    
+    Examples
+    --------
+    >>> df_labeled = get_trends_labels(df)
+    >>> df_only_up = get_trends_labels(df, labels={"uptrend": 1, "notrend": 0})
+    >>> df_custom = get_trends_labels(df, labels={"uptrend": "BUY", "downtrend": "SELL"})
+    """
+    
+    if labels is None:
+        labels = {"uptrend": 1, "downtrend": -1, "notrend": 0}
+    
+    if not isinstance(df.index, pd.DatetimeIndex):
+        df.index = pd.to_datetime(df.index)
+        
+    default_label: Union[int, float, str] = labels.get("notrend", 0)
+    df['label'] = default_label
+    
+    if "uptrend" in labels:
+        try:
+            uptrends: pd.DataFrame = detecttrend(
+                df,
+                trend="uptrend",
+                window=window,
+                limit=limit,
+            )
+            
+            if not uptrends.empty:
+                uptrend_label: Union[int, float, str] = labels["uptrend"]
+                
+                for _, row in uptrends.iterrows():
+                    start_date: pd.Timestamp = row['Valley Date']
+                    end_date: pd.Timestamp = row['Peak Date']
+                    
+                    mask: pd.Series = (df.index >= start_date) & (df.index <= end_date)
+                    
+                    df.loc[mask, 'label'] = uptrend_label
+                    
+        except Exception as e:
+            print(f"Warning: Error processing uptrends: {e}")
+
+    if "downtrend" in labels:
+        try:
+            downtrends: pd.DataFrame = detecttrend(
+                df,
+                trend="downtrend",
+                window=window,
+                limit=limit,
+            )
+            
+            if not downtrends.empty:
+                downtrend_label: Union[int, float, str] = labels["downtrend"]
+                
+                for _, row in downtrends.iterrows():
+                    start_date: pd.Timestamp = row['Peak Date']
+                    end_date: pd.Timestamp = row['Valley Date']
+                    
+                    mask: pd.Series = (df.index >= start_date) & (df.index <= end_date)
+                    
+                    df.loc[mask, 'label'] = downtrend_label
+                    
+        except Exception as e:
+            print(f"Warning: Error processing downtrends: {e}")
+            
+    return df

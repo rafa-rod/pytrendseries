@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
 
-__version__ = "0.1.10"
+__version__ = "0.1.11"
 
-print(f"imported pytrendseries version {__version__}")
+print(__version__)

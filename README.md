@@ -69,7 +69,7 @@ trends_detected = pytrendseries.detecttrend(filtered_data, trend=trend, window=w
 The variable `trends_detected` is a dataframe that contains the initial and end date of each trend, the prices of each date, time span of each trend and the drawdown of each trend. Let's see the first five rows of this dataframe:
 
 ```
-| from                | to                  |   price0 |   price1 |   indice_from |   indice_to |   time_span |   drawdown |
+| Peak Date           | Valley Date         |   Peak   |   Valley |   index_peak  |index_valley |   time_span |   drawdown |
 |:--------------------|:--------------------|---------:|---------:|--------------:|------------:|------------:|-----------:|
 | 2000-01-03 00:00:00 | 2000-01-31 00:00:00 |  5.90057 |  5.12252 |             0 |          19 |          19 |  0.131859  |
 | 2000-03-09 00:00:00 | 2000-04-24 00:00:00 |  6.42701 |  5.02208 |            45 |          76 |          31 |  0.218597  |
@@ -259,3 +259,63 @@ plt.show()
 <center>
 <img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/series_max_drawdown.png" style="width:90%;"/>
 </center>
+
+# Trend Labeling for Machine Learning
+
+The `get_trends_labels` function automates the process of labeling financial time series data based on detected market structures. By identifying peaks and valleys within a specified window, it segments the data into **Uptrends**, **Downtrends**, and **No Trend** periods.
+
+## Why use this for Machine Learning?
+
+This function is particularly useful for **supervised learning classification problems**. Instead of trying to predict the exact future price (a regression problem), you can train models to predict the market state or direction.
+
+*   **Target Variable Engineering:** Converts raw price data into discrete classes (e.g., `1`, `-1`, `0`).
+*   **Noise Reduction:** Ignores minor fluctuations by focusing on significant trends defined by the `window` and `limit` parameters.
+*   **Flexibility:** Allows custom labeling schemes (e.g., numeric for models, strings for interpretability).
+
+## Output Example
+
+After running the function, your dataframe will include a new `label` column indicating the market regime for each date.
+
+| Date | Close | Label | Market State |
+| :--- | :--- | :---: | :--- |
+| 2023-01-03 | 100.5 | 0 | No Trend |
+| 2023-01-04 | 101.2 | 0 | No Trend |
+| 2023-01-05 | 103.5 | **1** | **Uptrend** |
+| 2023-01-06 | 105.0 | **1** | **Uptrend** |
+| 2023-01-09 | 104.8 | **1** | **Uptrend** |
+| 2023-01-10 | 102.0 | 0 | No Trend |
+| 2023-01-11 | 99.5 | **-1** | **Downtrend** |
+| 2023-01-12 | 98.0 | **-1** | **Downtrend** |
+
+## Usage Examples
+
+### 1. Default Configuration
+Uses standard numeric labels (`1` for uptrend, `-1` for downtrend, `0` for no trend).
+
+```python
+df_labeled = get_trends_labels(df, window=252, limit=5)
+```
+### 2. Custom String Labels
+Useful for interpretability or specific model requirements.
+
+```python
+custom_labels = {
+    "uptrend": "BUY", 
+    "downtrend": "SELL", 
+    "notrend": "HOLD"
+}
+df_labeled = get_trends_labels(df, labels=custom_labels)
+```
+
+### 3. Binary Classification (Uptrend vs. Rest)
+Ignore downtrends and treat them as "no trend" for a specific strategy.
+
+```python
+binary_labels = {
+    "uptrend": 1, 
+    "notrend": 0
+}
+df_labeled = get_trends_labels(df, labels=binary_labels)
+```
+
+
