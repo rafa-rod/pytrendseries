@@ -53,9 +53,10 @@ Detection of trends could be used in machine learning algorithms such as classif
 ## Example
 
 Inform:
- - type of trend you desire to investigate => downtrend or uptrend;
- - window or maximum period of a trend (example: 60 days considering 1 day as 1 period);
- - the minimum value that represents the number of consecutive days (or another period of time) to be considered a trend (default 5 periods).
+
+- type of trend you desire to investigate => downtrend or uptrend;
+- window or maximum period of a trend (example: 60 days considering 1 day as 1 period);
+- the minimum value that represents the number of consecutive days (or another period of time) to be considered a trend (default 5 periods).
 
 ```python
 import pytrendseries
@@ -90,6 +91,7 @@ year = 2020
 trends_detected = pytrendseries.detecttrend(filtered_data, trend=trend, window=window)
 pytrendseries.vizplot.plot_trend(filtered_data, trends_detected, trend, year)
 ```
+
 <center>
 <img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/plot_downtrend.png" style="width:90%;"/>
 </center>
@@ -109,17 +111,28 @@ pytrendseries.vizplot.plot_trend(filtered_data, trends_detected, 'uptrend', year
 <img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/plot_uptrend.png" style="width:90%;"/>
 </center>
 
+## Maximum Drawdown
+
+The `maxdrawdown` calculates the Maximum Drawdown within non-overlapping time windows, providing detailed information about each significant drawdown event.
+
 The maximum drawdown or maximum drawup can be obtained by sorting the dataframe by column drawdown. To do that, just code:
 
 ```python
 maxdd_in_window = trends_detected.sort_values("drawdown", ascending=False).iloc[0:1]
 ```
 
-Another way is to call the function `maxdrawdown`. Note that this result will be differente once the maximum drawdown of the intire timeseries.
+Another way is to call the function `maxdrawdown`. Note that this result will be differente once the maximum drawdown of the intire timeseries, unless you pass same window parameter.
 
 ```python
-maxdd = pytrendseries.maxdrawdown(filtered_data)
+maxdd = pytrendseries.maxdrawdown(filtered_data, window=None)
 ```
+
+Output includes:
+
+- Window Start/End dates;
+- Peak and Valley dates with corresponding prices;
+- Maximum Drawdown percentage;
+- Time Span (number of periods from peak to valley).
 
 You can code to vizualize as follows:
 
@@ -168,29 +181,44 @@ pytrendseries.plot_evolution(filtered_data, figsize = (10,4), colors=["gray", "r
 <img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/plot_evolution.png" style="width:90%;"/>
 </center>
 
+## Current Drawdown
+
+The `calculate_current_drawdown` function returns key metrics including the current price, last peak value and date, current drawdown percentage, and the duration (in number of records) since the last peak.
+
+```python
+import pytrendseries
+pytrendseries.calculate_current_drawdown(filtered_data)
+```
+
+Output example:
+
+| current_price | last_peak | current_drawdown | last_peak_date | time_in_drawdown |
+| ------------: | --------: | ---------------: | -------------: | ---------------: |
+|         98.50 |    105.30 |           -6.46% |     2024-01-15 |               12 |
+
+## Time Under Water (tuw)
 
 To get time underwater (tuw), just type:
 
 ```python
 import pytrendseries
-pytrendseries.tuw(filtered_data)
+pytrendseries.calculate_time_under_water(filtered_data)
 ```
 
 The output would be (showing the tail of the dataframe):
 
 ```
-| inital_date|   peak    |   valley  |   drawdown  |   time underwater |   final_date |
-|:-----------|----------:|----------:|------------:|------------------:|-------------:|
-| 2007-12-28 |  44.66140 |  33.58194 |     0.24808 |                85 |   2008-05-06 |
-| 2008-05-06 |  45.00000 |  44.85000 |     0.00333 |                4  |   2008-05-09 |
-| 2008-05-13 |  46.95000 |  46.30000 |     0.01384 |                3  |   2008-05-15 |
-| 2008-05-21 |  52.51000 |  4.20000  |     0.92002 |               NaN |          NaN |
+| Peak Date | Recovery Date |   Peak   |   Valley  |   MaxDD   | Time Underwater |   Status   |
+|:----------|:--------------|---------:|----------:|----------:|----------------:|-----------:|
+| 2007-12-28|   2008-05-06  | 44.66140 | 33.58194  |   0.24808 |       85        | Recovered  |
+| 2008-05-06|   2008-05-09  | 45.00000 | 44.85000  |   0.00333 |        4        | Recovered  |
+| 2008-05-13|   2008-05-15  | 46.95000 | 46.30000  |   0.01384 |        3        | Recovered  |
+| 2008-05-21|      NaT      | 52.51000 |  4.20000  |   0.92002 |      235        |  Ongoing   |
 ```
 
-The table shows time underwater as NaN, it means that the timeseries still on downtrend.
+The _Status_ column indicates whether the drawdown period has recovered or is still ongoing, while Time Underwater shows the number of periods spent below the previous peak.
 
 Another important usage of `pytrendseries` is to obtain the series of drawdowns or series of maximum drawdowns in order to calculate the drawdown at risk or maximum drawdown at risk.
-
 
 ```python
 import pytrendseries
@@ -227,13 +255,12 @@ plt.show()
 <img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/series_drawdown.png" style="width:90%;"/>
 </center>
 
-
 ```python
 import pytrendseries
 import matplotlib.pyplot as plt
 import seaborn as sns; sns.set_style("white")
 
-maxdd_in_window = maxdrawdown(filtered_data, window=126)
+maxdd_in_window = pytrendseries.maxdrawdown(filtered_data, window=126)
 
 plt.figure(figsize=(15,5))
 sns.histplot(maxdd_in_window["MaxDD"]*100, kde=True, bins=30)
@@ -260,7 +287,7 @@ plt.show()
 <img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/series_max_drawdown.png" style="width:90%;"/>
 </center>
 
-# Trend Labeling for Machine Learning
+## Trend Labeling for Machine Learning
 
 The `get_trends_labels` function automates the process of labeling financial time series data based on detected market structures. By identifying peaks and valleys within a specified window, it segments the data into **Uptrends**, **Downtrends**, and **No Trend** periods.
 
@@ -268,54 +295,56 @@ The `get_trends_labels` function automates the process of labeling financial tim
 
 This function is particularly useful for **supervised learning classification problems**. Instead of trying to predict the exact future price (a regression problem), you can train models to predict the market state or direction.
 
-*   **Target Variable Engineering:** Converts raw price data into discrete classes (e.g., `1`, `-1`, `0`).
-*   **Noise Reduction:** Ignores minor fluctuations by focusing on significant trends defined by the `window` and `limit` parameters.
-*   **Flexibility:** Allows custom labeling schemes (e.g., numeric for models, strings for interpretability).
+- **Target Variable Engineering:** Converts raw price data into discrete classes (e.g., `1`, `-1`, `0`).
+- **Noise Reduction:** Ignores minor fluctuations by focusing on significant trends defined by the `window` and `limit` parameters.
+- **Flexibility:** Allows custom labeling schemes (e.g., numeric for models, strings for interpretability).
 
 ## Output Example
 
 After running the function, your dataframe will include a new `label` column indicating the market regime for each date.
 
-| Date | Close | Label | Market State |
-| :--- | :--- | :---: | :--- |
-| 2023-01-03 | 100.5 | 0 | No Trend |
-| 2023-01-04 | 101.2 | 0 | No Trend |
-| 2023-01-05 | 103.5 | **1** | **Uptrend** |
-| 2023-01-06 | 105.0 | **1** | **Uptrend** |
-| 2023-01-09 | 104.8 | **1** | **Uptrend** |
-| 2023-01-10 | 102.0 | 0 | No Trend |
-| 2023-01-11 | 99.5 | **-1** | **Downtrend** |
-| 2023-01-12 | 98.0 | **-1** | **Downtrend** |
+| Date       | Close | Label  | Market State  |
+| :--------- | :---- | :----: | :------------ |
+| 2023-01-03 | 100.5 |   0    | No Trend      |
+| 2023-01-04 | 101.2 |   0    | No Trend      |
+| 2023-01-05 | 103.5 | **1**  | **Uptrend**   |
+| 2023-01-06 | 105.0 | **1**  | **Uptrend**   |
+| 2023-01-09 | 104.8 | **1**  | **Uptrend**   |
+| 2023-01-10 | 102.0 |   0    | No Trend      |
+| 2023-01-11 | 99.5  | **-1** | **Downtrend** |
+| 2023-01-12 | 98.0  | **-1** | **Downtrend** |
 
 ## Usage Examples
 
 ### 1. Default Configuration
+
 Uses standard numeric labels (`1` for uptrend, `-1` for downtrend, `0` for no trend).
 
 ```python
 df_labeled = get_trends_labels(df, window=252, limit=5)
 ```
+
 ### 2. Custom String Labels
+
 Useful for interpretability or specific model requirements.
 
 ```python
 custom_labels = {
-    "uptrend": "BUY", 
-    "downtrend": "SELL", 
+    "uptrend": "BUY",
+    "downtrend": "SELL",
     "notrend": "HOLD"
 }
 df_labeled = get_trends_labels(df, labels=custom_labels)
 ```
 
 ### 3. Binary Classification (Uptrend vs. Rest)
+
 Ignore downtrends and treat them as "no trend" for a specific strategy.
 
 ```python
 binary_labels = {
-    "uptrend": 1, 
+    "uptrend": 1,
     "notrend": 0
 }
 df_labeled = get_trends_labels(df, labels=binary_labels)
 ```
-
-
