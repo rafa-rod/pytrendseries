@@ -4,7 +4,7 @@ from typing import List, Optional, Union
 import numpy as np
 import pandas as pd
 
-from .detecttrend import *
+from .detecttrend import _treat_parameters
 
 
 def _calculate_max_drawdown_vectorized(prices_series: pd.Series) -> pd.DataFrame:

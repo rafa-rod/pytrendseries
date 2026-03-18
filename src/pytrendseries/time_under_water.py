@@ -13,7 +13,7 @@ from typing import Dict, List, Union
 import numpy as np
 import pandas as pd
 
-from .detecttrend import *
+from .detecttrend import _treat_parameters
 
 warnings.filterwarnings("ignore")
 
