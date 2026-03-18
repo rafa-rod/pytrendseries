@@ -43,7 +43,7 @@ pip install pytrendseries
 Alternatively, you could install the latest version directly from Github:
 
 ```sh
-pip install https://github.com/rafa-rod/pytrendseries/archive/refs/heads/main.zip
+python -m pip install git+https://github.com/rafa-rod/pytrendseries.git
 ```
 
 ## Why pytrendseries is important?
