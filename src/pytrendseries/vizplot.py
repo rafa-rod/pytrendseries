@@ -5,10 +5,12 @@ Created on Mon Feb 22 21:29:38 2021
 
 @author: Rafael
 """
+
 import time
-import pandas as pd
 from typing import Union
+
 import matplotlib.pyplot as plt
+import pandas as pd
 
 plt.style.use("fivethirtyeight")
 
@@ -18,7 +20,7 @@ def plot_trend(
     getTrend3: pd.DataFrame,
     trend="downtrend",
     year: Union[bool, int] = None,
-    **kwargs
+    **kwargs,
 ):  # pragma: no cover
     """To plot all trend found.
     Parameters:
@@ -30,9 +32,9 @@ def plot_trend(
         simple matplotlib chart
     """
     start = time.time()
-    if pd.api.types.is_datetime64_ns_dtype(df.index.dtype) == False:
+    if not pd.api.types.is_datetime64_ns_dtype(df.index.dtype):
         df.index = pd.to_datetime(df.index, format=kwargs.get("format"))
-    
+
     for col in getTrend3.columns[:1]:
         getTrend3[col] = pd.to_datetime(getTrend3[col])
 
@@ -93,7 +95,7 @@ def plot_evolution(
     colors=["gray", "red"],
     alphas=[1, 0.6],
     axis="y",
-    **kwargs
+    **kwargs,
 ):
     """To plot evolution of drawdowns.
     Parameters:
