@@ -1,10 +1,20 @@
 [tool.poetry]
 name = "pytrendseries"
 version = "0.1.11"
-description = "Detect trend in timeseries."
-authors = ["Rafael Rodrigues"]
+description = "Trend detection in time series for risk management, drawdown analysis, and machine learning classification models."
+authors = ["Rafael Rodrigues rafael.rafarod@gmail.com"]
 license = "MIT"
 readme = "README.md"
+repository = "https://github.com/rafa-rod/pytrendseries"
+homepage = "https://github.com/rafa-rod/pytrendseries"
+keywords = ["time-series", "trends", "data-analysis", "timeseries", "finance",
+            "machine-learning", "quant", "quantitative-finance", "drawdown",
+            "time-under-water", "drawdown-at-risk", "maximum-drawdown",
+            "maximum-drawdown-at-risk", "classification-model", "downtrend",
+            "uptrend", "trends-detected", "timeunderwater", "tuw", "current-drawdown"]
+packages = [
+    { include = "pytrendseries", from = "src" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.8"
