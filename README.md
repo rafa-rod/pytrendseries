@@ -1,5 +1,8 @@
 <!-- buttons -->
 <p align="center">
+    <a href="https://www.linkedin.com/in/rafaelrod/">
+        <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white"
+            alt="LinkedIn"></a> &nbsp;
     <a href="https://www.python.org/">
         <img src="https://img.shields.io/badge/python-v3-brightgreen.svg"
             alt="python"></a> &nbsp;
