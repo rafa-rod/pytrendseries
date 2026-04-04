@@ -22,7 +22,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
-def _treat_parameters(prices, trend="downtrend", limit=5, window=1):
+def _treat_parameters(prices, trend="downtrend", window=5, limit=1):
     """Checking all parameters"""
     if not isinstance(limit, int):
         raise ValueError("Limit parameter must be a interger value.")
