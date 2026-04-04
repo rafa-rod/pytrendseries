@@ -324,7 +324,8 @@ After running the function, your dataframe will include a new `label` column ind
 Uses standard numeric labels (`1` for uptrend, `-1` for downtrend, `0` for no trend).
 
 ```python
-df_labeled = get_trends_labels(df, window=252, limit=5)
+import pytrendseries
+df_labeled = pytrendseries.get_trends_labels(df, window=252, limit=5)
 ```
 
 ### 2. Custom String Labels
@@ -337,7 +338,7 @@ custom_labels = {
     "downtrend": "SELL",
     "notrend": "HOLD"
 }
-df_labeled = get_trends_labels(df, labels=custom_labels)
+df_labeled = pytrendseries.get_trends_labels(df, labels=custom_labels)
 ```
 
 ### 3. Binary Classification (Uptrend vs. Rest)
@@ -349,5 +350,5 @@ binary_labels = {
     "uptrend": 1,
     "notrend": 0
 }
-df_labeled = get_trends_labels(df, labels=binary_labels)
+df_labeled = pytrendseries.get_trends_labels(df, labels=binary_labels)
 ```
