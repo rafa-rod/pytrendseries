@@ -233,7 +233,7 @@ def get_trends_labels(
         df.index = pd.to_datetime(df.index)
 
     default_label: Union[int, float, str] = labels.get("notrend", 0)
-    df["label"] = default_label
+    df_labels = pd.DataFrame(default_label, index=df.index)
 
     if "uptrend" in labels:
         try:
@@ -253,7 +253,7 @@ def get_trends_labels(
 
                     mask: pd.Series = (df.index >= start_date) & (df.index <= end_date)
 
-                    df.loc[mask, "label"] = uptrend_label
+                    df_labels.loc[mask, "label"] = uptrend_label
 
         except Exception as e:
             print(f"Warning: Error processing uptrends: {e}")
@@ -276,9 +276,9 @@ def get_trends_labels(
 
                     mask: pd.Series = (df.index >= start_date) & (df.index <= end_date)
 
-                    df.loc[mask, "label"] = downtrend_label
+                    df_labels.loc[mask, "label"] = downtrend_label
 
         except Exception as e:
             print(f"Warning: Error processing downtrends: {e}")
-
+    df = pd.concat([df, df_labels], axis=1).fillna(default_label)
     return df
