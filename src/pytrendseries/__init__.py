@@ -1,6 +1,6 @@
 from . import version
 from .current_drawdown import calculate_current_drawdown
-from .detecttrend import detecttrend
+from .detecttrend import detecttrend, get_trends_labels
 from .maximum_drawdown import maxdrawdown
 from .time_under_water import calculate_time_under_water
 from .vizplot import plot_drawdowns, plot_evolution, plot_trend
