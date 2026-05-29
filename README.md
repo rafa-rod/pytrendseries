@@ -95,9 +95,7 @@ trends_detected = pytrendseries.detecttrend(filtered_data, trend=trend, window=w
 pytrendseries.vizplot.plot_trend(filtered_data, trends_detected, trend, year)
 ```
 
-<center>
-<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/plot_downtrend.png" style="width:90%;"/>
-</center>
+![Downtrend](https://raw.githubusercontent.com/rafa-rod/pytrendseries/main/media/plot_downtrend.png)
 
 To visualize all uptrends found, inform `trend='uptrend'`:
 
@@ -110,9 +108,7 @@ trends_detected = pytrendseries.detecttrend(filtered_data, trend='uptrend', wind
 pytrendseries.vizplot.plot_trend(filtered_data, trends_detected, 'uptrend', year)
 ```
 
- <center>
-<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/plot_uptrend.png" style="width:90%;"/>
-</center>
+![Uptrend](https://raw.githubusercontent.com/rafa-rod/pytrendseries/main/media/plot_uptrend.png)
 
 ## Maximum Drawdown
 
@@ -152,9 +148,7 @@ plt.grid(axis='x')
 plt.show()
 ```
 
-<center>
-<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/maxdd.png" style="width:90%;"/>
-</center>
+![Maximum Drawdown](https://raw.githubusercontent.com/rafa-rod/pytrendseries/main/media/maxdd.png)
 
 You may pass the parameter window to obtain the same result:
 
@@ -169,9 +163,7 @@ import pytrendseries
 pytrendseries.plot_drawdowns(filtered_data, figsize = (10,4), color="gray", alpha=0.6, title="Drawdowns", axis="y")
 ```
 
-<center>
-<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/plot_drawdons.png" style="width:90%;"/>
-</center>
+![Drawdowns](https://raw.githubusercontent.com/rafa-rod/pytrendseries/main/media/plot_drawdons.png)
 
 Another option is:
 
@@ -180,9 +172,7 @@ import pytrendseries
 pytrendseries.plot_evolution(filtered_data, figsize = (10,4), colors=["gray", "red"], alphas=[1,0.6])
 ```
 
-<center>
-<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/plot_evolution.png" style="width:90%;"/>
-</center>
+![Evolution](https://raw.githubusercontent.com/rafa-rod/pytrendseries/main/media/plot_evolution.png)
 
 ## Current Drawdown
 
@@ -254,9 +244,7 @@ plt.ylabel("Density", rotation=0, labelpad=-30, loc="top")
 plt.show()
 ```
 
-<center>
-<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/series_drawdown.png" style="width:90%;"/>
-</center>
+![Series of Drawdowns](https://raw.githubusercontent.com/rafa-rod/pytrendseries/main/media/series_drawdown.png)
 
 ```python
 import pytrendseries
@@ -286,9 +274,7 @@ plt.ylabel("Density", rotation=0, labelpad=-30, loc="top")
 plt.show()
 ```
 
-<center>
-<img src="https://github.com/rafa-rod/pytrendseries/blob/main/media/series_max_drawdown.png" style="width:90%;"/>
-</center>
+![Series of Maximum Drawdowns](https://raw.githubusercontent.com/rafa-rod/pytrendseries/main/media/series_max_drawdown.png)
 
 ## Trend Labeling for Machine Learning
 

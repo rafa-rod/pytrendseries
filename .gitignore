@@ -6,8 +6,12 @@ __pycache__/
 *$py.class
 *.pyc
 
-#read pypi
-README_pypi.md
+#README to pypi
+*README_pypi.md
+*.coverage
+*.coveragerc
+*.sh
+coverage.xml
 
 # C extensions
 *.so
@@ -45,11 +49,10 @@ pip-delete-this-directory.txt
 htmlcov/
 .tox/
 .nox/
-.coverage
-.coverage.*
+*.coverage
+*.coveragerc
 .cache
 nosetests.xml
-coverage.xml
 *.cover
 *.py,cover
 .hypothesis/

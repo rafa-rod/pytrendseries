@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "pytrendseries"
-version = "0.1.11"
+version = "0.1.12"
 description = "Trend detection in time series for risk management, drawdown analysis, and machine learning classification models."
-authors = ["Rafael Rodrigues rafael.rafarod@gmail.com"]
+authors = ["Rafael Rodrigues <rafael.rafarod@gmail.com>"]
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/rafa-rod/pytrendseries"
@@ -12,12 +12,24 @@ keywords = ["time-series", "trends", "data-analysis", "timeseries", "finance",
             "time-under-water", "drawdown-at-risk", "maximum-drawdown",
             "maximum-drawdown-at-risk", "classification-model", "downtrend",
             "uptrend", "trends-detected", "timeunderwater", "tuw", "current-drawdown"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business :: Financial",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
 packages = [
     { include = "pytrendseries", from = "src" }
 ]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.10"
 pandas = [
     {version = "<=1.5.3", python = "<=3.9"},
     {version = ">=2.2.3", python = ">=3.10"}
@@ -30,7 +42,30 @@ matplotlib = [
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=7.0.0,<8.0.0"
+pytest-cov = "^6.0.0"
+twine = ">=6.0"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.coverage.run]
+branch = true
+source = ["src/pytrendseries"]
+
+[tool.coverage.report]
+show_missing = true
+ignore_errors = true
+omit = ["tests/*"]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if .debug:",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
+
+[tool.pytest.ini_options]
+markers = [
+    "network: testes que requerem conexão com a internet",
+]

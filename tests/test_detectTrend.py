@@ -1,17 +1,15 @@
 import os
-import sys
 
 import pandas as pd
 import pytest
 
-sys.path.append("./src/pytrendseries")
 path2 = os.path.join("./tests/resource")
 
-import detecttrend
-import maximum_drawdown as mdd
-import time_under_water as tuw
-import vizplot
-from detecttrend import get_trends_labels
+from pytrendseries import detecttrend
+from pytrendseries import maximum_drawdown as mdd
+from pytrendseries import time_under_water as tuw
+from pytrendseries import vizplot
+from pytrendseries.detecttrend import get_trends_labels
 
 
 class TestClass:
@@ -39,14 +37,14 @@ class TestClass:
     # ==================== DETECT TREND TESTS ====================
     def test_detecttrend(self):
         """Test original detecttrend function"""
-        output1 = detecttrend.detecttrend(
+        output1 = detecttrend(
             self.df_prices, trend=self.trend, window=self.window
         )
         self.output1 = output1
         assert (output1["Peak Date"] < output1["Valley Date"]).all()
         assert (output1["Peak"] > output1["Valley"]).all()
 
-        output1_1 = detecttrend.detecttrend(
+        output1_1 = detecttrend(
             self.df_prices, trend="uptrend", window=self.window
         )
         self.output1_1 = output1_1
@@ -295,27 +293,27 @@ class TestClass:
     def test_raises(self):
         """Test error handling and validation"""
         with pytest.raises(Exception) as error1:
-            detecttrend.detecttrend(
+            detecttrend(
                 self.df_prices, trend=self.trend, window=self.window, limit="11"
             )
         with pytest.raises(Exception) as error2:
-            detecttrend.detecttrend(
+            detecttrend(
                 self.df_prices, trend=self.trend, window=self.window, limit=11.2
             )
         with pytest.raises(Exception) as error6:
-            detecttrend.detecttrend(self.df_prices, trend=self.trend, window=0)
+            detecttrend(self.df_prices, trend=self.trend, window=0)
         with pytest.raises(Exception) as error7:
-            detecttrend.detecttrend(self.df_prices, trend=self.trend, window=4)
+            detecttrend(self.df_prices, trend=self.trend, window=4)
         with pytest.raises(Exception) as error8:
-            detecttrend.detecttrend(self.df_prices, trend=self.trend, window=30.2)
+            detecttrend(self.df_prices, trend=self.trend, window=30.2)
         with pytest.raises(Exception) as error9:
-            detecttrend.detecttrend(self.df_prices, trend=self.trend, window="30")
+            detecttrend(self.df_prices, trend=self.trend, window="30")
         with pytest.raises(Exception) as error13:
-            detecttrend.detecttrend(self.df_prices, trend="test", window=self.window)
+            detecttrend(self.df_prices, trend="test", window=self.window)
         with pytest.raises(Exception) as error14:
-            detecttrend.detecttrend(self.df_prices, trend=1, window=self.window)
+            detecttrend(self.df_prices, trend=1, window=self.window)
         with pytest.raises(Exception) as error18:
-            detecttrend.detecttrend(
+            detecttrend(
                 pd.DataFrame(
                     [[1, 2, 3], [2, 4, 5]], columns=["date", "month", "sales"]
                 ),

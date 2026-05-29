@@ -1,23 +1,10 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Feb 22 21:29:38 2021
-
-@author: Rafael
-"""
-
 import time
-from typing import Dict, Union
+import warnings
+from typing import Dict, Tuple, Union
 
 import numpy as np
 import pandas as pd
-
-pd.set_option("display.float_format", lambda x: "%.5f" % x)
-pd.set_option("display.max_rows", 100)
-pd.set_option("display.max_columns", 10)
-pd.set_option("display.width", 1000)
-
-import warnings
+from numba import njit
 
 warnings.filterwarnings("ignore")
 
@@ -44,152 +31,243 @@ def _treat_parameters(prices, trend="downtrend", limit=1, window=5):
         )
 
 
+@njit(cache=True)
+def _scan(
+    prices: np.ndarray,
+    n: int,
+    is_down: bool,
+    limit: int,
+    window: int,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Scan a price series and locate every trend within the given window.
+
+    Walks the series sequentially and, for each starting point that begins a
+    trend, finds the peak and valley that bound it. The peak and valley are
+    each returned twice: once as the index used for the ``index_peak`` /
+    ``index_valley`` columns (first occurrence of the extreme price) and once
+    as the index used for the date columns (last occurrence of the extreme
+    price), which may differ when prices are tied.
+
+    Parameters
+    ----------
+    prices : np.ndarray
+        One-dimensional ``float64`` array of observed prices, sorted by date.
+    n : int
+        Number of observations in ``prices``.
+    is_down : bool
+        ``True`` to detect downtrends, ``False`` to detect uptrends.
+    limit : int
+        Minimum number of periods between peak and valley for a trend to count.
+    window : int
+        Maximum number of periods a trend may span.
+
+    Returns
+    -------
+    tuple of np.ndarray
+        Six arrays of equal length, one entry per detected trend:
+        ``(index_peak, index_valley, date_peak, date_valley, peak_price,
+        valley_price)``.
+    """
+    from_idx = np.empty(n, dtype=np.int64)
+    to_idx = np.empty(n, dtype=np.int64)
+    from_didx = np.empty(n, dtype=np.int64)
+    to_didx = np.empty(n, dtype=np.int64)
+    peak_p = np.empty(n, dtype=np.float64)
+    valley_p = np.empty(n, dtype=np.float64)
+    count = 0
+
+    i = 0
+    while i < n - 1:
+        price2 = prices[i]
+        price1 = prices[i + 1]
+        go = (is_down and price1 < price2) or ((not is_down) and price1 > price2)
+
+        if go:
+            end = i + window
+            if end > n:
+                end = n
+
+            brk = -1
+            for j in range(i, end):
+                if (is_down and prices[j] > price2) or (
+                    (not is_down) and prices[j] < price2
+                ):
+                    brk = j
+                    break
+
+            if brk != -1:
+                seg_lo, seg_hi = i, brk
+            else:
+                seg_lo, seg_hi = i, end
+
+            pmax = prices[seg_lo]
+            for j in range(seg_lo, seg_hi):
+                if is_down:
+                    if prices[j] > pmax:
+                        pmax = prices[j]
+                else:
+                    if prices[j] < pmax:
+                        pmax = prices[j]
+            loc_max = seg_lo
+            for j in range(seg_lo, seg_hi):
+                if prices[j] == pmax:
+                    loc_max = j
+                    break
+
+            if brk != -1:
+                f_lo = loc_max + 1
+                f_hi = seg_hi
+                if f_lo >= f_hi:
+                    f_lo, f_hi = seg_lo, seg_hi
+                pmin = prices[f_lo]
+                for j in range(f_lo, f_hi):
+                    if is_down:
+                        if prices[j] < pmin:
+                            pmin = prices[j]
+                    else:
+                        if prices[j] > pmin:
+                            pmin = prices[j]
+                loc_min = f_lo
+                for j in range(f_lo, f_hi):
+                    if prices[j] == pmin:
+                        loc_min = j
+                        break
+                date_min = f_lo
+                for j in range(f_lo, f_hi):
+                    if prices[j] == pmin:
+                        date_min = j
+                date_max = loc_max
+            else:
+                pmin = prices[seg_lo]
+                for j in range(seg_lo, seg_hi):
+                    if is_down:
+                        if prices[j] < pmin:
+                            pmin = prices[j]
+                    else:
+                        if prices[j] > pmin:
+                            pmin = prices[j]
+                loc_min = seg_lo
+                for j in range(seg_lo, seg_hi):
+                    if prices[j] == pmin:
+                        loc_min = j
+                        break
+                date_max = seg_lo
+                for j in range(seg_lo, seg_hi):
+                    if prices[j] == pmax:
+                        date_max = j
+                date_min = seg_lo
+                for j in range(seg_lo, seg_hi):
+                    if prices[j] == pmin:
+                        date_min = j
+
+            if loc_min - loc_max >= limit:
+                from_idx[count] = loc_max
+                to_idx[count] = loc_min
+                from_didx[count] = date_max
+                to_didx[count] = date_min
+                peak_p[count] = pmax
+                valley_p[count] = pmin
+                count += 1
+                i = loc_min - 1
+        i += 1
+
+    return (
+        from_idx[:count],
+        to_idx[:count],
+        from_didx[:count],
+        to_didx[:count],
+        peak_p[:count],
+        valley_p[:count],
+    )
+
+
 def detecttrend(
-    df_prices, trend: str = "downtrend", limit: int = 5, window: int = 21, **kwargs
+    df_prices: pd.DataFrame,
+    trend: str = "downtrend",
+    limit: int = 5,
+    window: int = 21,
+    **kwargs,
 ) -> pd.DataFrame:
-    """It searches for trends on timeseries.
-    Parameters:
-        df_price (dataframe): timeseries.
-        trend    (string):    the desired trend to be analyzed.
-        limit    (int):       optional, the minimum value that represents the number of consecutive days (or another period of time) to be considered a trend.
-        window   (int):       optional, the maximum period of time to be considered a trend.
-    Returns:
-        getTrend2 (dataframe): dataframe containing all trends within given window.
+    """Detect every up- or downtrend in a time series.
+
+    Parameters
+    ----------
+    df_prices : pd.DataFrame
+        Single-column DataFrame of prices indexed by date. A non-datetime index
+        is converted with :func:`pandas.to_datetime`.
+    trend : str, optional
+        Either ``"downtrend"`` (default) or ``"uptrend"``.
+    limit : int, optional
+        Minimum number of periods between peak and valley for a trend to count.
+        Defaults to ``5``.
+    window : int, optional
+        Maximum number of periods a trend may span. Defaults to ``21``.
+    **kwargs
+        Passed through to :func:`pandas.to_datetime`; ``format`` is honoured
+        when converting a non-datetime index.
+
+    Returns
+    -------
+    pd.DataFrame
+        One row per detected trend. For a downtrend the columns are
+        ``["Peak Date", "Valley Date", "Peak", "Valley", "index_peak",
+        "index_valley", "time_span", "drawdown"]``; for an uptrend the peak and
+        valley roles are swapped and the last column is ``"drawup"``. Rows are
+        sorted by the first column.
     """
     if not pd.api.types.is_datetime64_ns_dtype(df_prices.index.dtype):
         df_prices.index = pd.to_datetime(df_prices.index, format=kwargs.get("format"))
 
     _treat_parameters(df_prices, trend, limit, window)
 
-    start = time.time()
     df_prices = df_prices.sort_index()
-    i = 0
-    df_array = df_prices.reset_index().reset_index().values
-    prices, date, index = df_array[:, 2], df_array[:, 1], df_array[:, 0]
-    getTrend = np.empty([1, 6], dtype=object)
+    prices: np.ndarray = np.ascontiguousarray(
+        df_prices.iloc[:, 0].values, dtype=np.float64
+    )
+    dates: np.ndarray = df_prices.index.values
+    n: int = prices.shape[0]
+    is_down: bool = trend.lower() == "downtrend"
 
-    while True:
-        price2 = prices[i]
-        price1 = prices[i + 1]
-        if trend.lower() == "downtrend" and price1 < price2:
-            go_trend = True
-        elif trend.lower() == "uptrend" and price1 > price2:
-            go_trend = True
-        else:
-            go_trend = False
+    start: float = time.time()
+    f_idx, t_idx, f_didx, t_didx, pk, vl = _scan(
+        prices, n, is_down, int(limit), int(window)
+    )
 
-        if go_trend:
-            trend_df = np.empty([1, 6], dtype=object)
-            try:
-                found = df_array[i : (i + window)]
-            except:
-                found = df_array[i:]  # if len(array)<window size
-            if trend.lower() == "downtrend":
-                min_interval = found[np.where(found[:, 2] > price2)]
-            elif trend.lower() == "uptrend":
-                min_interval = found[np.where(found[:, 2] < price2)]
+    time_span: np.ndarray = t_idx - f_idx
+    if is_down:
+        dd: np.ndarray = np.abs(pk - vl) / np.maximum(pk, vl)
+        out: pd.DataFrame = pd.DataFrame(
+            {
+                "Peak Date": dates[f_didx],
+                "Valley Date": dates[t_didx],
+                "Peak": pk,
+                "Valley": vl,
+                "index_peak": f_idx,
+                "index_valley": t_idx,
+                "time_span": time_span,
+                "drawdown": dd,
+            }
+        )
+    else:
+        mn: np.ndarray = np.minimum(pk, vl)
+        with np.errstate(divide="ignore"):
+            du: np.ndarray = np.where(mn == 0, np.inf, np.abs(pk - vl) / mn)
+        out = pd.DataFrame(
+            {
+                "Valley Date": dates[f_didx],
+                "Peak Date": dates[t_didx],
+                "Valley": pk,
+                "Peak": vl,
+                "index_valley": f_idx,
+                "index_peak": t_idx,
+                "time_span": time_span,
+                "drawup": du,
+            }
+        )
 
-            if list(min_interval):
-                min_interval = df_array[found[0][0] : min_interval[0][0]]
-                if trend.lower() == "downtrend":
-                    priceMax = np.max(min_interval[:, 2])
-                elif trend.lower() == "uptrend":
-                    priceMax = np.min(min_interval[:, 2])
-                location_max = min_interval[np.where(min_interval == priceMax)[0], :][
-                    0
-                ][0]
-                found2 = min_interval[np.where(min_interval[:, 0] > location_max)]
-                if found2.size == 0:
-                    found2 = min_interval
-                if trend.lower() == "downtrend":
-                    priceMin = np.min(found2[:, 2])
-                elif trend.lower() == "uptrend":
-                    priceMin = np.max(found2[:, 2])
-                date_max = min_interval[np.where(min_interval[:, -1] == priceMax)][0][1]
-                date_min = found2[np.where(found2[:, -1] == priceMin)][-1][1]
-                location_min = found2[np.where(found2 == priceMin)[0], :][0][0]
-            else:  # the first value is maximum or the minimum (uptrend)
-                min_interval = found
-                if trend.lower() == "downtrend":
-                    priceMin = np.min(min_interval[:, 2])
-                elif trend.lower() == "uptrend":
-                    priceMin = np.max(min_interval[:, 2])
-                location_min = min_interval[np.where(min_interval == priceMin)[0], :][
-                    0
-                ][0]
-                if trend.lower() == "downtrend":
-                    priceMax = np.max(min_interval[:, 2])  # min_interval[0][-1]
-                elif trend.lower() == "uptrend":
-                    priceMax = np.min(min_interval[:, 2])  # min_interval[0][-1]
-                location_max = min_interval[np.where(min_interval == priceMax)[0], :][
-                    0
-                ][0]  # min_interval[0][0]
-                date_max = min_interval[np.where(min_interval[:, -1] == priceMax)][-1][
-                    1
-                ]  # min_interval[0][1]
-                date_min = min_interval[np.where(min_interval[:, -1] == priceMin)][-1][
-                    1
-                ]  # min_interval[-1][1]
-
-            trend_df[0, 0] = date_max  # from
-            trend_df[0, 1] = date_min  # to
-            trend_df[0, 2] = priceMax  # price0
-            trend_df[0, 3] = priceMin  # price1
-            trend_df[0, 4] = location_max  # index_from
-            trend_df[0, 5] = location_min  # index_to
-
-            if trend_df[0, 5] - trend_df[0, 4] >= limit:
-                getTrend = np.vstack([getTrend, trend_df])
-                i = location_min - 1
-
-        i += 1
-        if i >= prices.shape[0] - 1:
-            break
-
-    getTrend2 = pd.DataFrame(getTrend)
-    getTrend2.columns = ["from", "to", "price0", "price1", "index_from", "index_to"]
-
-    getTrend2["time_span"] = getTrend2["index_to"] - getTrend2["index_from"]
-    getTrend2 = getTrend2[getTrend2["time_span"] > 0]
-    getTrend2["time_span"] = pd.to_numeric(getTrend2["time_span"])
-
-    if trend == "downtrend":
-        getTrend2["drawdown"] = [
-            abs(getTrend2["price0"].iloc[x] - getTrend2["price1"].iloc[x])
-            / max(getTrend2["price0"].iloc[x], getTrend2["price1"].iloc[x])
-            for x in range(getTrend2.shape[0])
-        ]
-        getTrend2.columns = [
-            "Peak Date",
-            "Valley Date",
-            "Peak",
-            "Valley",
-            "index_peak",
-            "index_valley",
-            "time_span",
-            "drawdown",
-        ]
-    elif trend == "uptrend":
-        getTrend2["drawup"] = [
-            np.inf
-            if min(getTrend2["price0"].iloc[x], getTrend2["price1"].iloc[x]) == 0
-            else abs(getTrend2["price0"].iloc[x] - getTrend2["price1"].iloc[x])
-            / min(getTrend2["price0"].iloc[x], getTrend2["price1"].iloc[x])
-            for x in range(getTrend2.shape[0])
-        ]
-        getTrend2.columns = [
-            "Valley Date",
-            "Peak Date",
-            "Valley",
-            "Peak",
-            "index_valley",
-            "index_peak",
-            "time_span",
-            "drawup",
-        ]
-
-    print("Trends detected in {} secs".format(round((time.time() - start), 2)))
-    return getTrend2.sort_values(getTrend2.columns[0])
+    out = out[out["time_span"] > 0]
+    print("Trends detected in {} secs".format(round(time.time() - start, 4)))
+    return out.sort_values(out.columns[0]).reset_index(drop=True)
 
 
 def get_trends_labels(
