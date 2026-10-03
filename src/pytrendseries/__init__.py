@@ -20,7 +20,7 @@ __all__ = [
     "calculate_time_under_water",
     "calculate_current_drawdown",
     # plots
-    plot_evolution,
-    plot_drawdowns,
-    plot_trend,
+    "plot_evolution",
+    "plot_drawdowns",
+    "plot_trend",
 ]

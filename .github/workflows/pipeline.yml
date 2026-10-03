@@ -4,6 +4,10 @@ on:
   push:
   release:
     types: [created]
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   test:
@@ -72,5 +76,37 @@ jobs:
 
       - name: Build e publicar
         run: poetry publish --build
+        env:
+          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
+
+  check-pypi-token:
+    name: Verificar token do PyPI
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+
+      - name: Garantir que a versao ja existe no PyPI
+        run: |
+          VERSION=$(poetry version -s)
+          if ! curl -sf "https://pypi.org/pypi/pytrendseries/$VERSION/json" > /dev/null; then
+            echo "A versao $VERSION ainda nao esta no PyPI: este teste a publicaria de verdade. Abortando."
+            exit 1
+          fi
+          echo "Versao $VERSION ja publicada: o reenvio sera recusado e ignorado."
+
+      - name: Testar autenticacao (reenvio de versao existente)
+        run: poetry publish --build --skip-existing
         env:
           POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
