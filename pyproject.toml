@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pytrendseries"
-version = "0.1.12"
+version = "0.1.13"
 description = "Trend detection in time series for risk management, drawdown analysis, and machine learning classification models."
 authors = ["Rafael Rodrigues <rafael.rafarod@gmail.com>"]
 license = "MIT"
